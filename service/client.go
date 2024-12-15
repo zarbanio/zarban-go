@@ -12,9 +12,1379 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/oapi-codegen/runtime"
 )
+
+// Defines values for ChainActivityStepType.
+const (
+	ChainActivityStepTypeEIP712SignRequest   ChainActivityStepType = "EIP712SignRequest"
+	ChainActivityStepTypePersonalSignRequest ChainActivityStepType = "PersonalSignRequest"
+	ChainActivityStepTypePreparedTx          ChainActivityStepType = "PreparedTx"
+)
+
+// Defines values for EventDomain.
+const (
+	Chainlink        EventDomain = "chainlink"
+	Lendingpool      EventDomain = "lendingpool"
+	StableCoinSystem EventDomain = "stableCoinSystem"
+	UniswapV3        EventDomain = "uniswapV3"
+)
+
+// Defines values for EventName.
+const (
+	EventNameFile                       EventName = "File"
+	EventNameLendingpoolBorrow          EventName = "LendingpoolBorrow"
+	EventNameLendingpoolLiquidationCall EventName = "LendingpoolLiquidationCall"
+	EventNameLendingpoolRepay           EventName = "LendingpoolRepay"
+	EventNameLendingpoolWithdraw        EventName = "LendingpoolWithdraw"
+	EventNameMedian                     EventName = "Median"
+	EventNamePermission                 EventName = "Permission"
+	EventNameUnknown                    EventName = "Unknown"
+	EventNameVaultsDeposit              EventName = "VaultsDeposit"
+	EventNameVaultsKick                 EventName = "VaultsKick"
+	EventNameVaultsMint                 EventName = "VaultsMint"
+	EventNameVaultsRedo                 EventName = "VaultsRedo"
+	EventNameVaultsRepay                EventName = "VaultsRepay"
+	EventNameVaultsTake                 EventName = "VaultsTake"
+	EventNameVaultsWithdraw             EventName = "VaultsWithdraw"
+	EventNameVaultsYank                 EventName = "VaultsYank"
+)
+
+// Defines values for EventType.
+const (
+	Executive EventType = "executive"
+	Oracle    EventType = "oracle"
+	User      EventType = "user"
+)
+
+// Defines values for OrderOrderStatus.
+const (
+	OrderOrderStatusCancelled         OrderOrderStatus = "cancelled"
+	OrderOrderStatusError             OrderOrderStatus = "error"
+	OrderOrderStatusExpired           OrderOrderStatus = "expired"
+	OrderOrderStatusFilled            OrderOrderStatus = "filled"
+	OrderOrderStatusInsufficientFunds OrderOrderStatus = "insufficient-funds"
+	OrderOrderStatusOpen              OrderOrderStatus = "open"
+)
+
+// Defines values for OrderOrderType.
+const (
+	OrderOrderTypeDutch OrderOrderType = "dutch"
+	OrderOrderTypeLimit OrderOrderType = "limit"
+)
+
+// Defines values for OrderType.
+const (
+	Classic    OrderType = "Classic"
+	DutchLimit OrderType = "DutchLimit"
+)
+
+// Defines values for Symbol.
+const (
+	DAI  Symbol = "DAI"
+	ETH  Symbol = "ETH"
+	TMN  Symbol = "TMN"
+	USD  Symbol = "USD"
+	USDC Symbol = "USDC"
+	USDT Symbol = "USDT"
+	WBTC Symbol = "WBTC"
+	WETH Symbol = "WETH"
+	ZAR  Symbol = "ZAR"
+)
+
+// Defines values for TradeType.
+const (
+	ExactInput  TradeType = "ExactInput"
+	ExactOutput TradeType = "ExactOutput"
+)
+
+// Defines values for GetUnfilledOrdersParamsType.
+const (
+	GetUnfilledOrdersParamsTypeDutch GetUnfilledOrdersParamsType = "dutch"
+	GetUnfilledOrdersParamsTypeLimit GetUnfilledOrdersParamsType = "limit"
+)
+
+// Defines values for GetUnfilledOrdersParamsStatus.
+const (
+	GetUnfilledOrdersParamsStatusCancelled         GetUnfilledOrdersParamsStatus = "cancelled"
+	GetUnfilledOrdersParamsStatusError             GetUnfilledOrdersParamsStatus = "error"
+	GetUnfilledOrdersParamsStatusExpired           GetUnfilledOrdersParamsStatus = "expired"
+	GetUnfilledOrdersParamsStatusFilled            GetUnfilledOrdersParamsStatus = "filled"
+	GetUnfilledOrdersParamsStatusInsufficientFunds GetUnfilledOrdersParamsStatus = "insufficient-funds"
+	GetUnfilledOrdersParamsStatusOpen              GetUnfilledOrdersParamsStatus = "open"
+)
+
+// Defines values for GetVaultEventsByIdParamsType.
+const (
+	Deposit  GetVaultEventsByIdParamsType = "deposit"
+	Mint     GetVaultEventsByIdParamsType = "mint"
+	Repay    GetVaultEventsByIdParamsType = "repay"
+	Withdraw GetVaultEventsByIdParamsType = "withdraw"
+)
+
+// Account defines model for Account.
+type Account struct {
+	// Address Ethereum address of the account
+	Address            string                    `json:"address"`
+	LendingpoolSummary AccountLendingpoolSummary `json:"lendingpoolSummary"`
+	NetWorth           Currency                  `json:"netWorth"`
+
+	// Points The number of points the account has.
+	Points                  int64                          `json:"points"`
+	StabelcoinSystemSummary AccountStablecoinSystemSummary `json:"stabelcoinSystemSummary"`
+	StakingSummary          AccountStakingSummary          `json:"stakingSummary"`
+	TotalDebt               Currency                       `json:"totalDebt"`
+	TotalDeposits           Currency                       `json:"totalDeposits"`
+	WalletBalance           WalletBalance                  `json:"walletBalance"`
+}
+
+// AccountLendingpoolSummary defines model for AccountLendingpoolSummary.
+type AccountLendingpoolSummary struct {
+	AvailableToBorrow Currency `json:"availableToBorrow"`
+
+	// BorrowPowerUsed Borrow power used in lending pool
+	BorrowPowerUsed string `json:"borrowPowerUsed"`
+
+	// CurrentLiquidationThreshold Current liquidation threshold in lending pool
+	CurrentLiquidationThreshold string `json:"currentLiquidationThreshold"`
+
+	// HealthFactor Health factor in lending pool
+	HealthFactor string `json:"healthFactor"`
+
+	// LoanToValue Loan to value in lending pool
+	LoanToValue string `json:"loanToValue"`
+
+	// NetApy Net annual percentage yield in lending pool
+	NetApy string `json:"netApy"`
+
+	// TotalBorrowApy Total borrow rate in lending pool for account
+	TotalBorrowApy  string   `json:"totalBorrowApy"`
+	TotalCollateral Currency `json:"totalCollateral"`
+	TotalDebt       Currency `json:"totalDebt"`
+	TotalDeposits   Currency `json:"totalDeposits"`
+
+	// TotalSupplyApy Total supply rate in lending pool for account
+	TotalSupplyApy string `json:"totalSupplyApy"`
+}
+
+// AccountStablecoinSystemSummary defines model for AccountStablecoinSystemSummary.
+type AccountStablecoinSystemSummary struct {
+	// NetApy Net annual percentage yield in stablecoin system
+	NetApy        string   `json:"netApy"`
+	TotalDebt     Currency `json:"totalDebt"`
+	TotalDeposits Currency `json:"totalDeposits"`
+}
+
+// AccountStakingSummary defines model for AccountStakingSummary.
+type AccountStakingSummary struct {
+	// NetApy Net annual percentage yield in staking contract
+	NetApy          string   `json:"netApy"`
+	TotalStake      Currency `json:"totalStake"`
+	UnclaimedReward Currency `json:"unclaimedReward"`
+}
+
+// Address defines model for Address.
+type Address struct {
+	// Address The Ethereum address.
+	Address string `json:"address"`
+
+	// Label The label of the address.
+	Label string `json:"label"`
+}
+
+// AddressResponse defines model for AddressResponse.
+type AddressResponse struct {
+	Data []Address `json:"data"`
+}
+
+// Balance defines model for Balance.
+type Balance struct {
+	Balance Currency `json:"balance"`
+	Token   Token    `json:"token"`
+}
+
+// ChainActivity defines model for ChainActivity.
+type ChainActivity struct {
+	NumberOfSteps int                 `json:"numberOfSteps"`
+	StepNumber    int                 `json:"stepNumber"`
+	Steps         []ChainActivityStep `json:"steps"`
+}
+
+// ChainActivityStep defines model for ChainActivityStep.
+type ChainActivityStep struct {
+	Data ChainActivityStepData `json:"data"`
+	Type ChainActivityStepType `json:"type"`
+}
+
+// ChainActivityStepType defines model for ChainActivityStep.Type.
+type ChainActivityStepType string
+
+// ChainActivityStepData defines model for ChainActivityStepData.
+type ChainActivityStepData struct {
+	union json.RawMessage
+}
+
+// Currency defines model for Currency.
+type Currency map[string]string
+
+// DutchAmount defines model for DutchAmount.
+type DutchAmount struct {
+	EndAmount   Currency `json:"endAmount"`
+	Recipient   *string  `json:"recipient,omitempty"`
+	StartAmount Currency `json:"startAmount"`
+	Token       Token    `json:"token"`
+}
+
+// EIP712SignRequest defines model for EIP712SignRequest.
+type EIP712SignRequest struct {
+	// Hash The hash of the EIP712 signature that needs to be signed
+	Hash string `json:"hash"`
+
+	// Name The name of the EIP712 signature
+	Name      string    `json:"name"`
+	TypedData TypedData `json:"typedData"`
+}
+
+// Error defines model for Error.
+type Error struct {
+	// Msg Error message
+	Msg     string   `json:"msg"`
+	Reasons []string `json:"reasons"`
+}
+
+// ErrorMessage defines model for ErrorMessage.
+type ErrorMessage struct {
+	Solutions []ErrorSolution `json:"solutions"`
+
+	// UserMessage User-friendly error message
+	UserMessage string `json:"userMessage"`
+}
+
+// ErrorReason Error reasons
+type ErrorReason = string
+
+// ErrorSolution Possible solutions for the error
+type ErrorSolution = string
+
+// EventDetailsResponse defines model for EventDetailsResponse.
+type EventDetailsResponse struct {
+	Data []Log `json:"data"`
+}
+
+// EventDomain The domain of the event.
+type EventDomain string
+
+// EventName defines model for EventName.
+type EventName string
+
+// EventType The type of the event. who has triggered the event.
+type EventType string
+
+// ExtendedEvent defines model for ExtendedEvent.
+type ExtendedEvent struct {
+	// Domain The domain of the event.
+	Domain EventDomain `json:"domain"`
+
+	// Id Identifier for the event.
+	Id   int       `json:"id"`
+	Name EventName `json:"name"`
+
+	// Payload The payload of the event. The payload is a JSON-marshalled
+	Payload map[string]interface{} `json:"payload"`
+	Raw     Log                    `json:"raw"`
+
+	// Type The type of the event. who has triggered the event.
+	Type EventType `json:"type"`
+}
+
+// FormattedReserveData defines model for FormattedReserveData.
+type FormattedReserveData struct {
+	AvailableLiquidity  Currency `json:"availableLiquidity"`
+	BaseLTVasCollateral string   `json:"baseLTVasCollateral"`
+	BorrowingEnabled    bool     `json:"borrowingEnabled"`
+
+	// Id Identifier for the reserve data.
+	Id                          string   `json:"id"`
+	IsActive                    bool     `json:"isActive"`
+	IsFrozen                    bool     `json:"isFrozen"`
+	Price                       Currency `json:"price"`
+	ReserveFactor               string   `json:"reserveFactor"`
+	ReserveLiquidationBonus     string   `json:"reserveLiquidationBonus"`
+	ReserveLiquidationThreshold string   `json:"reserveLiquidationThreshold"`
+	SupplyAPR                   string   `json:"supplyAPR"`
+	SupplyAPY                   string   `json:"supplyAPY"`
+	TotalDebt                   Currency `json:"totalDebt"`
+	TotalLiquidity              Currency `json:"totalLiquidity"`
+	UnderlyingAsset             Token    `json:"underlyingAsset"`
+	UsageAsCollateralEnabled    bool     `json:"usageAsCollateralEnabled"`
+	UtilizationRate             string   `json:"utilizationRate"`
+	VariableBorrowAPR           string   `json:"variableBorrowAPR"`
+	VariableBorrowAPY           string   `json:"variableBorrowAPY"`
+
+	// VariableDebtTokenAddress Address of the associated variable debt token contract in hexadecimal format.
+	VariableDebtTokenAddress string `json:"variableDebtTokenAddress"`
+
+	// ZTokenAddress Address of the associated zToken contract in hexadecimal format.
+	ZTokenAddress string `json:"zTokenAddress"`
+}
+
+// Ilk defines model for Ilk.
+type Ilk struct {
+	// AnnualStabilityFee Annual Stability Fee
+	AnnualStabilityFee string   `json:"annualStabilityFee"`
+	AvailableToBorrow  Currency `json:"availableToBorrow"`
+
+	// Clipper Clipper Address
+	Clipper     string   `json:"clipper"`
+	Debt        Currency `json:"debt"`
+	DebtCeiling Currency `json:"debtCeiling"`
+	Dirt        Currency `json:"dirt"`
+	DustLimit   Currency `json:"dustLimit"`
+
+	// Gem Gem Address
+	Gem  string   `json:"gem"`
+	Hole Currency `json:"hole"`
+
+	// Join Join Address
+	Join string `json:"join"`
+
+	// LiquidationPenalty Liquidation Penalty
+	LiquidationPenalty string `json:"liquidationPenalty"`
+
+	// MaximumLoanToValue Maximum Loan To Value
+	MaximumLoanToValue string `json:"maximumLoanToValue"`
+
+	// Median Median Address
+	Median string `json:"median"`
+
+	// MinimumCollateralizationRatio Minimum Collateralization Ratio
+	MinimumCollateralizationRatio string `json:"minimumCollateralizationRatio"`
+
+	// Name Name of the ILK
+	Name      string   `json:"name"`
+	NextPrice Currency `json:"nextPrice"`
+
+	// Pip Pip Address
+	Pip   string   `json:"pip"`
+	Price Currency `json:"price"`
+
+	// Symbol Symbol representation
+	Symbol Symbol `json:"symbol"`
+}
+
+// IlksResponse defines model for IlksResponse.
+type IlksResponse struct {
+	Data []Ilk `json:"data"`
+}
+
+// LendingpoolBorrow defines model for LendingpoolBorrow.
+type LendingpoolBorrow struct {
+	Amount Currency `json:"amount"`
+
+	// BorrowRate The borrow rate.
+	BorrowRate      string   `json:"borrowRate"`
+	MaxBorrowAmount Currency `json:"maxBorrowAmount"`
+	UnderlyingAsset Token    `json:"underlyingAsset"`
+
+	// User The Ethereum address of the user.
+	User string `json:"user"`
+}
+
+// LendingpoolBorrowTxRequest defines model for LendingpoolBorrowTxRequest.
+type LendingpoolBorrowTxRequest struct {
+	// Amount The amount to borrow in native token units
+	Amount *string `json:"amount,omitempty"`
+	Symbol string  `json:"symbol"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// LendingpoolBorrowTxResponse defines model for LendingpoolBorrowTxResponse.
+type LendingpoolBorrowTxResponse struct {
+	ChainActivity *ChainActivity         `json:"chainActivity,omitempty"`
+	Response      *LendingpoolTxResponse `json:"response,omitempty"`
+}
+
+// LendingpoolDeposit defines model for LendingpoolDeposit.
+type LendingpoolDeposit struct {
+	Amount Currency `json:"amount"`
+
+	// SupplyAPY The supply APY.
+	SupplyAPY       string `json:"supplyAPY"`
+	UnderlyingAsset Token  `json:"underlyingAsset"`
+
+	// UsageAsCollateralEnabledOnUser Whether the user has enabled the asset as collateral.
+	UsageAsCollateralEnabledOnUser bool `json:"usageAsCollateralEnabledOnUser"`
+
+	// User The Ethereum address of the user.
+	User string `json:"user"`
+}
+
+// LendingpoolDepositTxRequest defines model for LendingpoolDepositTxRequest.
+type LendingpoolDepositTxRequest struct {
+	// Amount The amount to deposit in native token units, if not provided, it will be calculated based on the token balance
+	Amount *string `json:"amount,omitempty"`
+	Symbol string  `json:"symbol"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// LendingpoolDepositTxResponse defines model for LendingpoolDepositTxResponse.
+type LendingpoolDepositTxResponse struct {
+	ChainActivity *ChainActivity         `json:"chainActivity,omitempty"`
+	Response      *LendingpoolTxResponse `json:"response,omitempty"`
+}
+
+// LendingpoolRepayTxRequest defines model for LendingpoolRepayTxRequest.
+type LendingpoolRepayTxRequest struct {
+	// Amount The amount to repay in native token units, if not provided, it will be calculated based on the borrow balance
+	Amount *string `json:"amount,omitempty"`
+	Symbol string  `json:"symbol"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// LendingpoolRepayTxResponse defines model for LendingpoolRepayTxResponse.
+type LendingpoolRepayTxResponse struct {
+	ChainActivity *ChainActivity         `json:"chainActivity,omitempty"`
+	Response      *LendingpoolTxResponse `json:"response,omitempty"`
+}
+
+// LendingpoolStats defines model for LendingpoolStats.
+type LendingpoolStats struct {
+	TotalAvailable  map[string]string `json:"totalAvailable"`
+	TotalBorrows    map[string]string `json:"totalBorrows"`
+	TotalMarketSize map[string]string `json:"totalMarketSize"`
+}
+
+// LendingpoolTxResponse defines model for LendingpoolTxResponse.
+type LendingpoolTxResponse struct {
+	// NextHealthFactor The health factor after the deposit
+	NextHealthFactor *string `json:"nextHealthFactor,omitempty"`
+}
+
+// LendingpoolUseAssetAsCollateralTxRequest defines model for LendingpoolUseAssetAsCollateralTxRequest.
+type LendingpoolUseAssetAsCollateralTxRequest struct {
+	// Enabled Enable or disable the asset as collateral
+	Enabled bool `json:"enabled"`
+
+	// Symbol Symbol of asset
+	Symbol string `json:"symbol"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// LendingpoolUseAssetAsCollateralTxResponse defines model for LendingpoolUseAssetAsCollateralTxResponse.
+type LendingpoolUseAssetAsCollateralTxResponse struct {
+	ChainActivity *ChainActivity         `json:"chainActivity,omitempty"`
+	Response      *LendingpoolTxResponse `json:"response,omitempty"`
+}
+
+// LendingpoolWithdrawTxRequest defines model for LendingpoolWithdrawTxRequest.
+type LendingpoolWithdrawTxRequest struct {
+	// Amount The amount to withdraw in native token units, if not provided, it will be calculated based on the deposit balance
+	Amount *string `json:"amount,omitempty"`
+	Symbol string  `json:"symbol"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// LendingpoolWithdrawTxResponse defines model for LendingpoolWithdrawTxResponse.
+type LendingpoolWithdrawTxResponse struct {
+	ChainActivity *ChainActivity         `json:"chainActivity,omitempty"`
+	Response      *LendingpoolTxResponse `json:"response,omitempty"`
+}
+
+// Log defines model for Log.
+type Log struct {
+	// Address The Ethereum address
+	Address string `json:"address"`
+
+	// BlockHash The block hash
+	BlockHash string `json:"blockHash"`
+
+	// BlockNumber The block number
+	BlockNumber uint64 `json:"blockNumber"`
+
+	// Contract The contract address
+	Contract string `json:"contract"`
+
+	// Data The data of the log
+	Data string `json:"data"`
+
+	// Decoded The decoded log, if available
+	Decoded *map[string]string `json:"decoded,omitempty"`
+
+	// Index The index
+	Index uint `json:"index"`
+
+	// Name The name of the log
+	Name      string    `json:"name"`
+	Timestamp Timestamp `json:"timestamp"`
+	Topics    []string  `json:"topics"`
+
+	// TxHash The transaction hash
+	TxHash string `json:"txHash"`
+}
+
+// MethodParameters defines model for MethodParameters.
+type MethodParameters struct {
+	Calldata string `json:"calldata"`
+	To       string `json:"to"`
+	Value    string `json:"value"`
+}
+
+// Order defines model for Order.
+type Order struct {
+	ChainId      int64            `json:"chainId"`
+	EncodedOrder string           `json:"encodedOrder"`
+	Input        RawDutchAmount   `json:"input"`
+	OrderHash    string           `json:"orderHash"`
+	OrderStatus  OrderOrderStatus `json:"orderStatus"`
+	OrderType    OrderOrderType   `json:"orderType"`
+	Outputs      []RawDutchAmount `json:"outputs"`
+	QuoteId      *string          `json:"quoteId,omitempty"`
+	Signature    string           `json:"signature"`
+}
+
+// OrderOrderStatus defines model for Order.OrderStatus.
+type OrderOrderStatus string
+
+// OrderOrderType defines model for Order.OrderType.
+type OrderOrderType string
+
+// OrderInfo defines model for OrderInfo.
+type OrderInfo struct {
+	AdditionalValidationContract string        `json:"additionalValidationContract"`
+	AdditionalValidationData     string        `json:"additionalValidationData"`
+	ChainId                      int           `json:"chainId"`
+	Deadline                     Timestamp     `json:"deadline"`
+	DecayEndTime                 Timestamp     `json:"decayEndTime"`
+	DecayStartTime               Timestamp     `json:"decayStartTime"`
+	ExclusiveFiller              string        `json:"exclusiveFiller"`
+	ExclusivityOverrideBps       int           `json:"exclusivityOverrideBps"`
+	Input                        DutchAmount   `json:"input"`
+	Nonce                        string        `json:"nonce"`
+	Outputs                      []DutchAmount `json:"outputs"`
+	Permit2Address               string        `json:"permit2Address"`
+	Reactor                      string        `json:"reactor"`
+	Swapper                      string        `json:"swapper"`
+}
+
+// OrderResponse defines model for OrderResponse.
+type OrderResponse struct {
+	Data []Order `json:"data"`
+}
+
+// OrderType defines model for OrderType.
+type OrderType string
+
+// PermitSingle defines model for PermitSingle.
+type PermitSingle struct {
+	// Hash The hash of the permit that needs to be signed
+	Hash      string    `json:"hash"`
+	TypedData TypedData `json:"typedData"`
+}
+
+// PersonalSignRequest defines model for PersonalSignRequest.
+type PersonalSignRequest struct {
+	// Message The message that needs to be signed
+	Message string `json:"message"`
+}
+
+// PreparedTx defines model for PreparedTx.
+type PreparedTx struct {
+	GasFeeEstimate   Currency          `json:"gasFeeEstimate"`
+	GasUseEstimate   int               `json:"gasUseEstimate"`
+	Label            map[string]string `json:"label"`
+	MethodParameters MethodParameters  `json:"methodParameters"`
+	Type             string            `json:"type"`
+}
+
+// Price defines model for Price.
+type Price struct {
+	// Symbol Symbol representation
+	Symbol    Symbol    `json:"symbol"`
+	Timestamp Timestamp `json:"timestamp"`
+	Value     Currency  `json:"value"`
+}
+
+// PriceListResponse defines model for PriceListResponse.
+type PriceListResponse struct {
+	Data []Price `json:"data"`
+}
+
+// QuoteRequest defines model for QuoteRequest.
+type QuoteRequest struct {
+	Amount      string               `json:"amount"`
+	InputToken  string               `json:"inputToken"`
+	Options     *QuoteRequestOptions `json:"options,omitempty"`
+	OutputToken string               `json:"outputToken"`
+	Recipient   string               `json:"recipient"`
+	RequestId   *string              `json:"requestId,omitempty"`
+	TradeType   TradeType            `json:"tradeType"`
+	Type        *OrderType           `json:"type,omitempty"`
+}
+
+// QuoteRequestOptions defines model for QuoteRequestOptions.
+type QuoteRequestOptions struct {
+	DryRun             *bool   `json:"dryRun,omitempty"`
+	EncodedOrder       *string `json:"encodedOrder,omitempty"`
+	PermitAmount       *string `json:"permitAmount,omitempty"`
+	PermitExpiration   *int    `json:"permitExpiration,omitempty"`
+	PermitNonce        *string `json:"permitNonce,omitempty"`
+	PermitSigDeadline  *int    `json:"permitSigDeadline,omitempty"`
+	PermitSignature    *string `json:"permitSignature,omitempty"`
+	QuoteId            *string `json:"quoteId,omitempty"`
+	SlippageTolerance  *string `json:"slippageTolerance,omitempty"`
+	UseSyntheticQuotes *bool   `json:"useSyntheticQuotes,omitempty"`
+}
+
+// QuoteResponse defines model for QuoteResponse.
+type QuoteResponse struct {
+	Amount           Currency          `json:"amount"`
+	EncodedOrder     *string           `json:"encodedOrder,omitempty"`
+	GasFeeEstimate   Currency          `json:"gasFeeEstimate"`
+	GasPrice         Currency          `json:"gasPrice"`
+	GasUseEstimate   int               `json:"gasUseEstimate"`
+	MethodParameters *MethodParameters `json:"methodParameters,omitempty"`
+	OrderHash        *string           `json:"orderHash,omitempty"`
+	OrderInfo        *OrderInfo        `json:"orderInfo,omitempty"`
+	PermitData       *TypedData        `json:"permitData,omitempty"`
+	Quote            Currency          `json:"quote"`
+	QuoteId          string            `json:"quoteId"`
+	Route            []RouteItem       `json:"route"`
+	RouteString      string            `json:"routeString"`
+	Time             Timestamp         `json:"time"`
+	TradeType        TradeType         `json:"tradeType"`
+	Type             OrderType         `json:"type"`
+}
+
+// RawDutchAmount defines model for RawDutchAmount.
+type RawDutchAmount struct {
+	EndAmount   string  `json:"endAmount"`
+	Recipient   *string `json:"recipient,omitempty"`
+	StartAmount string  `json:"startAmount"`
+	Token       string  `json:"token"`
+}
+
+// RouteItem defines model for RouteItem.
+type RouteItem = V3PoolInRoute
+
+// Scoreboard defines model for Scoreboard.
+type Scoreboard struct {
+	Items []ScoreboardItem `json:"items"`
+}
+
+// ScoreboardItem defines model for ScoreboardItem.
+type ScoreboardItem struct {
+	Address string `json:"address"`
+	Points  int64  `json:"points"`
+}
+
+// StablecoinSystemBarkTxRequest defines model for StablecoinSystemBarkTxRequest.
+type StablecoinSystemBarkTxRequest struct {
+	// User Ethereum address of the user who is liquidating the vault and receiving incentives.
+	User string `json:"user"`
+
+	// VaultId The ID of the vault
+	VaultId int `json:"vaultId"`
+}
+
+// StablecoinSystemCreateVaultTxRequest defines model for StablecoinSystemCreateVaultTxRequest.
+type StablecoinSystemCreateVaultTxRequest struct {
+	// CollateralAmount The amount of collateral to deposit in native token units
+	CollateralAmount *string `json:"collateralAmount,omitempty"`
+
+	// IlkName The name of the ilk
+	IlkName string `json:"ilkName"`
+
+	// MintAmount The amount of stablecoin to mint in native token units
+	MintAmount string `json:"mintAmount"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// StablecoinSystemDepositCollateralTxRequest defines model for StablecoinSystemDepositCollateralTxRequest.
+type StablecoinSystemDepositCollateralTxRequest struct {
+	// Amount The amount of collateral to deposit in native token units, if not provided, it will be calculated based on the wallet balance
+	Amount *string `json:"amount,omitempty"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+
+	// VaultId The ID of the vault
+	VaultId int `json:"vaultId"`
+}
+
+// StablecoinSystemGemexitTxRequest defines model for StablecoinSystemGemexitTxRequest.
+type StablecoinSystemGemexitTxRequest struct {
+	// Amount The amount of Gem token to exit from Vat contract
+	Amount string `json:"amount"`
+
+	// Ilk Name of the ILK
+	Ilk string `json:"ilk"`
+
+	// User Ethereum address of the user intends to exit gem tokens from the Vat contract and receive them..
+	User string `json:"user"`
+}
+
+// StablecoinSystemMintZarTxRequest defines model for StablecoinSystemMintZarTxRequest.
+type StablecoinSystemMintZarTxRequest struct {
+	// Amount The amount of stablecoin to mint in native token units, if not provided, it will be calculated based on the available to mint amount
+	Amount *string `json:"amount,omitempty"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+
+	// VaultId The ID of the vault
+	VaultId int `json:"vaultId"`
+}
+
+// StablecoinSystemRedoTxRequest defines model for StablecoinSystemRedoTxRequest.
+type StablecoinSystemRedoTxRequest struct {
+	// AuctionId The ID of the auction
+	AuctionId int `json:"auctionId"`
+
+	// Ilk Name of the ILK
+	Ilk string `json:"ilk"`
+
+	// User Ethereum address of the user resetting the auction and receiving incentives.
+	User string `json:"user"`
+}
+
+// StablecoinSystemRepayZarTxRequest defines model for StablecoinSystemRepayZarTxRequest.
+type StablecoinSystemRepayZarTxRequest struct {
+	// Amount The amount of stablecoin to repay in native token units, if not provided, it will be calculated based on the borrow balance
+	Amount *string `json:"amount,omitempty"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+
+	// VaultId The ID of the vault
+	VaultId int `json:"vaultId"`
+}
+
+// StablecoinSystemStats defines model for StablecoinSystemStats.
+type StablecoinSystemStats struct {
+	// SystemBadDebt System bad debt
+	SystemBadDebt SystemBadDebt `json:"systemBadDebt"`
+
+	// SystemDebt System debt
+	SystemDebt SystemDebt `json:"systemDebt"`
+
+	// SystemDebtCeiling System debt ceiling
+	SystemDebtCeiling SystemDebtCeiling `json:"systemDebtCeiling"`
+
+	// SystemSurplus System surplus
+	SystemSurplus SystemSurplus `json:"systemSurplus"`
+
+	// SystemSurplusBuffer System surplus buffer
+	SystemSurplusBuffer SystemSurplusBuffer `json:"systemSurplusBuffer"`
+
+	// SystemSurplusLotSize System surplus lot size
+	SystemSurplusLotSize SystemSurplusLotSize `json:"systemSurplusLotSize"`
+}
+
+// StablecoinSystemTakeTxRequest defines model for StablecoinSystemTakeTxRequest.
+type StablecoinSystemTakeTxRequest struct {
+	// AuctionId The ID of the auction
+	AuctionId int `json:"auctionId"`
+
+	// CollateralAmountUpperLimit upper limit on the amount of collateral to buy [wad]
+	CollateralAmountUpperLimit string `json:"collateralAmountUpperLimit"`
+
+	// Ilk Name of the ILK
+	Ilk string `json:"ilk"`
+
+	// MaxAcceptablePrice Maximum acceptable price (ZAR / collateral) [ray]
+	MaxAcceptablePrice string `json:"maxAcceptablePrice"`
+
+	// User Ethereum address of the user taking the auction.
+	User string `json:"user"`
+}
+
+// StablecoinSystemWithdrawCollateralTxRequest defines model for StablecoinSystemWithdrawCollateralTxRequest.
+type StablecoinSystemWithdrawCollateralTxRequest struct {
+	// Amount The amount of collateral to withdraw in native token units, if not provided, it will be calculated based on the withdrawable balance
+	Amount *string `json:"amount,omitempty"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+
+	// VaultId The ID of the vault
+	VaultId int `json:"vaultId"`
+}
+
+// StablecoinSystemZarexitTxRequest defines model for StablecoinSystemZarexitTxRequest.
+type StablecoinSystemZarexitTxRequest struct {
+	// Amount The amount of Zar token to exit from Vat contract
+	Amount string `json:"amount"`
+
+	// User Ethereum address of the user intends to exit zar tokens from the Vat contract and receive them..
+	User string `json:"user"`
+}
+
+// StablecoinSystemZarjoinTxRequest defines model for StablecoinSystemZarjoinTxRequest.
+type StablecoinSystemZarjoinTxRequest struct {
+	// Amount The amount of ZAR to approve and join into Vat contract
+	Amount string `json:"amount"`
+
+	// User Ethereum address of the user intends to join zar tokens into the Vat contract.
+	User string `json:"user"`
+}
+
+// StakeBalance defines model for StakeBalance.
+type StakeBalance = Currency
+
+// StakePlan defines model for StakePlan.
+type StakePlan struct {
+	// Apy Annual percentage yield of the staking plan
+	Apy string `json:"apy"`
+
+	// ContractAddress Ethereum address of the staking contract
+	ContractAddress string    `json:"contractAddress"`
+	FinishAt        Timestamp `json:"finishAt"`
+
+	// PlanName Name of staking plan
+	PlanName    string `json:"planName"`
+	RewardToken Token  `json:"rewardToken"`
+	StakeToken  Token  `json:"stakeToken"`
+}
+
+// StakePlansResponse defines model for StakePlansResponse.
+type StakePlansResponse struct {
+	Data []StakePlan `json:"data"`
+}
+
+// StakingCollectRewardTxRequest defines model for StakingCollectRewardTxRequest.
+type StakingCollectRewardTxRequest struct {
+	// ContractAddress Ethereum address of the staking contract
+	ContractAddress string `json:"contractAddress"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// StakingCollectRewardTxResponse defines model for StakingCollectRewardTxResponse.
+type StakingCollectRewardTxResponse struct {
+	ChainActivity *ChainActivity `json:"chainActivity,omitempty"`
+}
+
+// StakingStakeTxRequest defines model for StakingStakeTxRequest.
+type StakingStakeTxRequest struct {
+	// Amount The amount of asset to stake in native token units
+	Amount *string `json:"amount,omitempty"`
+
+	// ContractAddress Ethereum address of the staking contract
+	ContractAddress string `json:"contractAddress"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// StakingStakeTxResponse defines model for StakingStakeTxResponse.
+type StakingStakeTxResponse struct {
+	ChainActivity *ChainActivity `json:"chainActivity,omitempty"`
+}
+
+// StakingWithdrawTxRequest defines model for StakingWithdrawTxRequest.
+type StakingWithdrawTxRequest struct {
+	// Amount The amount of asset to withdraw in native token units
+	Amount *string `json:"amount,omitempty"`
+
+	// ContractAddress Ethereum address of the staking contract
+	ContractAddress string `json:"contractAddress"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// StakingWithdrawTxResponse defines model for StakingWithdrawTxResponse.
+type StakingWithdrawTxResponse struct {
+	ChainActivity *ChainActivity `json:"chainActivity,omitempty"`
+}
+
+// Stats defines model for Stats.
+type Stats struct {
+	Lendingpool      LendingpoolStats      `json:"lendingpool"`
+	StablecoinSystem StablecoinSystemStats `json:"stablecoinSystem"`
+}
+
+// Symbol Symbol representation
+type Symbol string
+
+// SystemBadDebt defines model for SystemBadDebt.
+type SystemBadDebt = Currency
+
+// SystemDebt defines model for SystemDebt.
+type SystemDebt = Currency
+
+// SystemDebtCeiling defines model for SystemDebtCeiling.
+type SystemDebtCeiling = Currency
+
+// SystemSurplus defines model for SystemSurplus.
+type SystemSurplus = Currency
+
+// SystemSurplusBuffer defines model for SystemSurplusBuffer.
+type SystemSurplusBuffer = Currency
+
+// SystemSurplusLotSize defines model for SystemSurplusLotSize.
+type SystemSurplusLotSize = Currency
+
+// TimeRange defines model for TimeRange.
+type TimeRange struct {
+	From *time.Time `json:"from,omitempty"`
+	To   *time.Time `json:"to,omitempty"`
+}
+
+// Timestamp defines model for Timestamp.
+type Timestamp struct {
+	// Gregorian Gregorian date
+	Gregorian string `json:"gregorian"`
+
+	// Jalaali Jalaali date
+	Jalaali string `json:"jalaali"`
+}
+
+// Token defines model for Token.
+type Token struct {
+	// Address The Ethereum address of the token.
+	Address string `json:"address"`
+
+	// ChainId The chain ID of the token.
+	ChainId int64 `json:"chainId"`
+
+	// Decimals The number of decimals for the token.
+	Decimals int64 `json:"decimals"`
+
+	// LogoUri The URI of the token's logo.
+	LogoUri string `json:"logoUri"`
+
+	// Name The name of the token.
+	Name string `json:"name"`
+
+	// PersianName The Persian name of the token.
+	PersianName string `json:"persianName"`
+
+	// Symbol Symbol representation
+	Symbol Symbol `json:"symbol"`
+}
+
+// TradeType defines model for TradeType.
+type TradeType string
+
+// Type defines model for Type.
+type Type struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+// TypedData defines model for TypedData.
+type TypedData struct {
+	Domain      TypedDataDomain        `json:"domain"`
+	Message     map[string]interface{} `json:"message"`
+	PrimaryType string                 `json:"primaryType"`
+
+	// Types A map where each key is a string and each value is a list of Type
+	Types Types `json:"types"`
+}
+
+// TypedDataDomain defines model for TypedDataDomain.
+type TypedDataDomain struct {
+	ChainId           string  `json:"chainId"`
+	Name              string  `json:"name"`
+	Salt              *string `json:"salt,omitempty"`
+	VerifyingContract string  `json:"verifyingContract"`
+	Version           *string `json:"version,omitempty"`
+}
+
+// Types A map where each key is a string and each value is a list of Type
+type Types map[string][]Type
+
+// UnclaimedReward defines model for UnclaimedReward.
+type UnclaimedReward = Currency
+
+// UpdateOrderRequest defines model for UpdateOrderRequest.
+type UpdateOrderRequest struct {
+	OrderHash string `json:"orderHash"`
+}
+
+// UserBorrowsResponse defines model for UserBorrowsResponse.
+type UserBorrowsResponse struct {
+	Data []LendingpoolBorrow `json:"data"`
+}
+
+// UserDepositsResponse defines model for UserDepositsResponse.
+type UserDepositsResponse struct {
+	Data []LendingpoolDeposit `json:"data"`
+}
+
+// UserError defines model for UserError.
+type UserError struct {
+	// Messages Localized error messages
+	Messages map[string]ErrorMessage `json:"messages"`
+	Reasons  []ErrorReason           `json:"reasons"`
+}
+
+// UserStake defines model for UserStake.
+type UserStake struct {
+	// Balance The amount of asset staked in native token units
+	Balance StakeBalance `json:"balance"`
+
+	// ContractAddress Ethereum address of the staking contract
+	ContractAddress string `json:"contractAddress"`
+
+	// PlanName Name of staking plan
+	PlanName string `json:"planName"`
+
+	// UnclaimedReward The amount of unclaimed reward in native token units
+	UnclaimedReward UnclaimedReward `json:"unclaimedReward"`
+
+	// User Ethereum address of the user
+	User string `json:"user"`
+}
+
+// UserStakesResponse defines model for UserStakesResponse.
+type UserStakesResponse struct {
+	Data []UserStake `json:"data"`
+}
+
+// V3PoolInRoute defines model for V3PoolInRoute.
+type V3PoolInRoute struct {
+	Address  string `json:"address"`
+	Fee      string `json:"fee"`
+	TokenIn  Token  `json:"tokenIn"`
+	TokenOut Token  `json:"tokenOut"`
+}
+
+// Vault defines model for Vault.
+type Vault struct {
+	AvailableToMint     Currency `json:"availableToMint"`
+	AvailableToWithdraw Currency `json:"availableToWithdraw"`
+	CollateralLocked    Currency `json:"collateralLocked"`
+
+	// CollateralizationRatio The collateralization ratio of the vault.
+	CollateralizationRatio string   `json:"collateralizationRatio"`
+	Debt                   Currency `json:"debt"`
+
+	// Id Identifier for the vault.
+	Id               int      `json:"id"`
+	Ilk              Ilk      `json:"ilk"`
+	LiquidationPrice Currency `json:"liquidationPrice"`
+
+	// LoanToValue The loan to value of the vault.
+	LoanToValue string `json:"loanToValue"`
+
+	// Owner Ethereum address of the vault owner.
+	Owner string `json:"owner"`
+
+	// Urn Ethereum address of the vault urn.
+	Urn string `json:"urn"`
+}
+
+// VaultEventsResponse defines model for VaultEventsResponse.
+type VaultEventsResponse struct {
+	Data []ExtendedEvent `json:"data"`
+}
+
+// VaultsResponse defines model for VaultsResponse.
+type VaultsResponse struct {
+	Data []Vault `json:"data"`
+}
+
+// WalletBalance defines model for WalletBalance.
+type WalletBalance struct {
+	Balances []Balance `json:"balances"`
+}
+
+// GetAllAddressesParams defines parameters for GetAllAddresses.
+type GetAllAddressesParams struct {
+	// Format The type of addresses to return
+	Format *string `form:"format,omitempty" json:"format,omitempty"`
+}
+
+// GetUserBorrowsParams defines parameters for GetUserBorrows.
+type GetUserBorrowsParams struct {
+	// User Ethereum address of the user
+	User *string `form:"user,omitempty" json:"user,omitempty"`
+
+	// Reserve Ethereum address of the reserve
+	Reserve *string `form:"reserve,omitempty" json:"reserve,omitempty"`
+
+	// Cursor Cursor for pagination
+	Cursor *int `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Limit the number of deposits returned (default is 50)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetUserDepositsParams defines parameters for GetUserDeposits.
+type GetUserDepositsParams struct {
+	// User Ethereum address of the user
+	User *string `form:"user,omitempty" json:"user,omitempty"`
+
+	// Reserve Ethereum address of the reserve
+	Reserve *string `form:"reserve,omitempty" json:"reserve,omitempty"`
+
+	// Cursor Cursor for pagination
+	Cursor *int `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Limit the number of deposits returned (default is 50)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// FetchReserveDataByAssetParams defines parameters for FetchReserveDataByAsset.
+type FetchReserveDataByAssetParams struct {
+	// Asset The asset address in hexadecimal format.
+	Asset *string `form:"asset,omitempty" json:"asset,omitempty"`
+}
+
+// GetUnfilledOrdersParams defines parameters for GetUnfilledOrders.
+type GetUnfilledOrdersParams struct {
+	// Type Type of the order
+	Type *GetUnfilledOrdersParamsType `form:"type,omitempty" json:"type,omitempty"`
+
+	// Hash order hash
+	Hash *string `form:"hash,omitempty" json:"hash,omitempty"`
+
+	// Status Status of the order
+	Status *GetUnfilledOrdersParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// Offerer Ethereum address of the offerer
+	Offerer *string `form:"offerer,omitempty" json:"offerer,omitempty"`
+
+	// Filler Ethereum address of the filler
+	Filler *string `form:"filler,omitempty" json:"filler,omitempty"`
+
+	// DecayStartTime Decay start time
+	DecayStartTime *TimeRange `form:"decayStartTime,omitempty" json:"decayStartTime,omitempty"`
+
+	// DecayEndTime Decay end time
+	DecayEndTime *TimeRange `form:"decayEndTime,omitempty" json:"decayEndTime,omitempty"`
+
+	// Deadline Order deadline
+	Deadline *TimeRange `form:"deadline,omitempty" json:"deadline,omitempty"`
+
+	// Cursor Cursor for pagination
+	Cursor *int `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Limit the number of orders returned (default is 10)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetUnfilledOrdersParamsType defines parameters for GetUnfilledOrders.
+type GetUnfilledOrdersParamsType string
+
+// GetUnfilledOrdersParamsStatus defines parameters for GetUnfilledOrders.
+type GetUnfilledOrdersParamsStatus string
+
+// GetSingleTokenPermitParams defines parameters for GetSingleTokenPermit.
+type GetSingleTokenPermitParams struct {
+	// Token Ethereum address of the token
+	Token string `form:"token" json:"token"`
+
+	// User Ethereum address of the user
+	User string `form:"user" json:"user"`
+}
+
+// ListPricesParams defines parameters for ListPrices.
+type ListPricesParams struct {
+	// Symbol Symbol of the price
+	Symbol *string `form:"symbol,omitempty" json:"symbol,omitempty"`
+}
+
+// GetUserStakingStatsParams defines parameters for GetUserStakingStats.
+type GetUserStakingStatsParams struct {
+	// User Ethereum address of the user
+	User *string `form:"user,omitempty" json:"user,omitempty"`
+
+	// Address Ethereum address of the staking contract
+	Address *string `form:"address,omitempty" json:"address,omitempty"`
+
+	// Active Filter by active stakes
+	Active *bool `form:"active,omitempty" json:"active,omitempty"`
+
+	// Cursor Cursor for pagination
+	Cursor *int `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Limit the number of stakes returned (default is 50)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetVaultsByOwnerParams defines parameters for GetVaultsByOwner.
+type GetVaultsByOwnerParams struct {
+	// Owner Ethereum address of the owner
+	Owner *string `form:"owner,omitempty" json:"owner,omitempty"`
+}
+
+// GetVaultEventsByIdParams defines parameters for GetVaultEventsById.
+type GetVaultEventsByIdParams struct {
+	// Type Event type
+	Type *GetVaultEventsByIdParamsType `form:"type,omitempty" json:"type,omitempty"`
+}
+
+// GetVaultEventsByIdParamsType defines parameters for GetVaultEventsById.
+type GetVaultEventsByIdParamsType string
+
+// CreateLendingPoolBorrowJSONRequestBody defines body for CreateLendingPoolBorrow for application/json ContentType.
+type CreateLendingPoolBorrowJSONRequestBody = LendingpoolBorrowTxRequest
+
+// CreateLendingPoolDepositJSONRequestBody defines body for CreateLendingPoolDeposit for application/json ContentType.
+type CreateLendingPoolDepositJSONRequestBody = LendingpoolDepositTxRequest
+
+// CreateLendingPoolRepayJSONRequestBody defines body for CreateLendingPoolRepay for application/json ContentType.
+type CreateLendingPoolRepayJSONRequestBody = LendingpoolRepayTxRequest
+
+// SetLendingPoolAssetCollateralJSONRequestBody defines body for SetLendingPoolAssetCollateral for application/json ContentType.
+type SetLendingPoolAssetCollateralJSONRequestBody = LendingpoolUseAssetAsCollateralTxRequest
+
+// CreateLendingPoolWithdrawJSONRequestBody defines body for CreateLendingPoolWithdraw for application/json ContentType.
+type CreateLendingPoolWithdrawJSONRequestBody = LendingpoolWithdrawTxRequest
+
+// SyncOrderJSONRequestBody defines body for SyncOrder for application/json ContentType.
+type SyncOrderJSONRequestBody = UpdateOrderRequest
+
+// ExitGemTransactionJSONRequestBody defines body for ExitGemTransaction for application/json ContentType.
+type ExitGemTransactionJSONRequestBody = StablecoinSystemGemexitTxRequest
+
+// ResetAuctionTransactionJSONRequestBody defines body for ResetAuctionTransaction for application/json ContentType.
+type ResetAuctionTransactionJSONRequestBody = StablecoinSystemRedoTxRequest
+
+// TakeAuctionTransactionJSONRequestBody defines body for TakeAuctionTransaction for application/json ContentType.
+type TakeAuctionTransactionJSONRequestBody = StablecoinSystemTakeTxRequest
+
+// ExitZarTransactionJSONRequestBody defines body for ExitZarTransaction for application/json ContentType.
+type ExitZarTransactionJSONRequestBody = StablecoinSystemZarexitTxRequest
+
+// ApproveAndJoinZarTransactionJSONRequestBody defines body for ApproveAndJoinZarTransaction for application/json ContentType.
+type ApproveAndJoinZarTransactionJSONRequestBody = StablecoinSystemZarjoinTxRequest
+
+// LiquidateVaultTransactionJSONRequestBody defines body for LiquidateVaultTransaction for application/json ContentType.
+type LiquidateVaultTransactionJSONRequestBody = StablecoinSystemBarkTxRequest
+
+// CreateStableCoinVaultJSONRequestBody defines body for CreateStableCoinVault for application/json ContentType.
+type CreateStableCoinVaultJSONRequestBody = StablecoinSystemCreateVaultTxRequest
+
+// DepositStableCoinCollateralJSONRequestBody defines body for DepositStableCoinCollateral for application/json ContentType.
+type DepositStableCoinCollateralJSONRequestBody = StablecoinSystemDepositCollateralTxRequest
+
+// MintZarTransactionJSONRequestBody defines body for MintZarTransaction for application/json ContentType.
+type MintZarTransactionJSONRequestBody = StablecoinSystemMintZarTxRequest
+
+// RepayZarTransactionJSONRequestBody defines body for RepayZarTransaction for application/json ContentType.
+type RepayZarTransactionJSONRequestBody = StablecoinSystemRepayZarTxRequest
+
+// WithdrawCollateralTransactionJSONRequestBody defines body for WithdrawCollateralTransaction for application/json ContentType.
+type WithdrawCollateralTransactionJSONRequestBody = StablecoinSystemWithdrawCollateralTxRequest
+
+// CollectStakingRewardJSONRequestBody defines body for CollectStakingReward for application/json ContentType.
+type CollectStakingRewardJSONRequestBody = StakingCollectRewardTxRequest
+
+// StakeToStakingContractJSONRequestBody defines body for StakeToStakingContract for application/json ContentType.
+type StakeToStakingContractJSONRequestBody = StakingStakeTxRequest
+
+// WithdrawStakedAssetJSONRequestBody defines body for WithdrawStakedAsset for application/json ContentType.
+type WithdrawStakedAssetJSONRequestBody = StakingWithdrawTxRequest
+
+// GetSwapQuoteJSONRequestBody defines body for GetSwapQuote for application/json ContentType.
+type GetSwapQuoteJSONRequestBody = QuoteRequest
+
+// AsPreparedTx returns the union data inside the ChainActivityStepData as a PreparedTx
+func (t ChainActivityStepData) AsPreparedTx() (PreparedTx, error) {
+	var body PreparedTx
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPreparedTx overwrites any union data inside the ChainActivityStepData as the provided PreparedTx
+func (t *ChainActivityStepData) FromPreparedTx(v PreparedTx) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePreparedTx performs a merge with any union data inside the ChainActivityStepData, using the provided PreparedTx
+func (t *ChainActivityStepData) MergePreparedTx(v PreparedTx) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsEIP712SignRequest returns the union data inside the ChainActivityStepData as a EIP712SignRequest
+func (t ChainActivityStepData) AsEIP712SignRequest() (EIP712SignRequest, error) {
+	var body EIP712SignRequest
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromEIP712SignRequest overwrites any union data inside the ChainActivityStepData as the provided EIP712SignRequest
+func (t *ChainActivityStepData) FromEIP712SignRequest(v EIP712SignRequest) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeEIP712SignRequest performs a merge with any union data inside the ChainActivityStepData, using the provided EIP712SignRequest
+func (t *ChainActivityStepData) MergeEIP712SignRequest(v EIP712SignRequest) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsPersonalSignRequest returns the union data inside the ChainActivityStepData as a PersonalSignRequest
+func (t ChainActivityStepData) AsPersonalSignRequest() (PersonalSignRequest, error) {
+	var body PersonalSignRequest
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPersonalSignRequest overwrites any union data inside the ChainActivityStepData as the provided PersonalSignRequest
+func (t *ChainActivityStepData) FromPersonalSignRequest(v PersonalSignRequest) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePersonalSignRequest performs a merge with any union data inside the ChainActivityStepData, using the provided PersonalSignRequest
+func (t *ChainActivityStepData) MergePersonalSignRequest(v PersonalSignRequest) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ChainActivityStepData) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ChainActivityStepData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error

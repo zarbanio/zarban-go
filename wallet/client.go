@@ -16,6 +16,961 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+const (
+	BearerAuthScopes = "bearerAuth.Scopes"
+)
+
+// Defines values for AdminRedemptionUpdateRequestStatus.
+const (
+	AdminRedemptionUpdateRequestStatusApproved  AdminRedemptionUpdateRequestStatus = "Approved"
+	AdminRedemptionUpdateRequestStatusCompleted AdminRedemptionUpdateRequestStatus = "Completed"
+	AdminRedemptionUpdateRequestStatusRejected  AdminRedemptionUpdateRequestStatus = "Rejected"
+)
+
+// Defines values for LoanCreateRequestIntent.
+const (
+	LoanCreateRequestIntentCreate  LoanCreateRequestIntent = "create"
+	LoanCreateRequestIntentPreview LoanCreateRequestIntent = "preview"
+)
+
+// Defines values for LoanToValueOptions.
+const (
+	Normal LoanToValueOptions = "Normal"
+	Risky  LoanToValueOptions = "Risky"
+	Safe   LoanToValueOptions = "Safe"
+)
+
+// Defines values for RepayLoanRequestIntent.
+const (
+	RepayLoanRequestIntentPreview RepayLoanRequestIntent = "Preview"
+	RepayLoanRequestIntentRepay   RepayLoanRequestIntent = "Repay"
+)
+
+// Defines values for SwapRequestIntent.
+const (
+	Preview SwapRequestIntent = "Preview"
+	Quote   SwapRequestIntent = "Quote"
+	Swap    SwapRequestIntent = "Swap"
+)
+
+// Defines values for SwapRequestTradeType.
+const (
+	SwapRequestTradeTypeExactInput  SwapRequestTradeType = "ExactInput"
+	SwapRequestTradeTypeExactOutput SwapRequestTradeType = "ExactOutput"
+)
+
+// Defines values for SwapResponseTradeType.
+const (
+	SwapResponseTradeTypeExactInput  SwapResponseTradeType = "ExactInput"
+	SwapResponseTradeTypeExactOutput SwapResponseTradeType = "ExactOutput"
+)
+
+// Defines values for Symbol.
+const (
+	DAI  Symbol = "DAI"
+	ETH  Symbol = "ETH"
+	TMN  Symbol = "TMN"
+	USD  Symbol = "USD"
+	USDC Symbol = "USDC"
+	USDT Symbol = "USDT"
+	WBTC Symbol = "WBTC"
+	WETH Symbol = "WETH"
+	ZAR  Symbol = "ZAR"
+)
+
+// Defines values for TransactionDirection.
+const (
+	Inbound  TransactionDirection = "Inbound"
+	Outbound TransactionDirection = "Outbound"
+)
+
+// Defines values for TransactionStatus.
+const (
+	Failed  TransactionStatus = "Failed"
+	Sent    TransactionStatus = "Sent"
+	Success TransactionStatus = "Success"
+)
+
+// Defines values for TransactionType.
+const (
+	Credit   TransactionType = "Credit"
+	Debit    TransactionType = "Debit"
+	Deposit  TransactionType = "Deposit"
+	Transfer TransactionType = "Transfer"
+	Withdraw TransactionType = "Withdraw"
+)
+
+// Defines values for WithdrawRequestStatus.
+const (
+	WithdrawRequestStatusAccountBalanceUnlocked WithdrawRequestStatus = "AccountBalanceUnlocked"
+	WithdrawRequestStatusAccountDebited         WithdrawRequestStatus = "AccountDebited"
+	WithdrawRequestStatusApproved               WithdrawRequestStatus = "Approved"
+	WithdrawRequestStatusCanceled               WithdrawRequestStatus = "Canceled"
+	WithdrawRequestStatusCompleted              WithdrawRequestStatus = "Completed"
+	WithdrawRequestStatusFailed                 WithdrawRequestStatus = "Failed"
+	WithdrawRequestStatusPending                WithdrawRequestStatus = "Pending"
+	WithdrawRequestStatusProccessing            WithdrawRequestStatus = "Proccessing"
+	WithdrawRequestStatusRejected               WithdrawRequestStatus = "Rejected"
+	WithdrawRequestStatusSent                   WithdrawRequestStatus = "Sent"
+)
+
+// Defines values for GetAllRedemptionsParamsState.
+const (
+	GetAllRedemptionsParamsStateApproved  GetAllRedemptionsParamsState = "approved"
+	GetAllRedemptionsParamsStateCompleted GetAllRedemptionsParamsState = "completed"
+	GetAllRedemptionsParamsStatePending   GetAllRedemptionsParamsState = "pending"
+	GetAllRedemptionsParamsStateRejected  GetAllRedemptionsParamsState = "rejected"
+)
+
+// Defines values for GetOtpParamsChannel.
+const (
+	Phone GetOtpParamsChannel = "phone"
+)
+
+// Defines values for GenerateJwtTokenParamsDuration.
+const (
+	N15 GenerateJwtTokenParamsDuration = 15
+	N30 GenerateJwtTokenParamsDuration = 30
+	N7  GenerateJwtTokenParamsDuration = 7
+	N90 GenerateJwtTokenParamsDuration = 90
+)
+
+// Defines values for GetUserLoansParamsState.
+const (
+	GetUserLoansParamsStateActive           GetUserLoansParamsState = "active"
+	GetUserLoansParamsStateCreationFailed   GetUserLoansParamsState = "creation-failed"
+	GetUserLoansParamsStatePending          GetUserLoansParamsState = "pending"
+	GetUserLoansParamsStateRepaymentOngoing GetUserLoansParamsState = "repayment-ongoing"
+	GetUserLoansParamsStateSettled          GetUserLoansParamsState = "settled"
+	GetUserLoansParamsStateSettlementFailed GetUserLoansParamsState = "settlement-failed"
+)
+
+// Defines values for EstimateLoanCollateralParamsInputType.
+const (
+	Collateral EstimateLoanCollateralParamsInputType = "collateral"
+	Loan       EstimateLoanCollateralParamsInputType = "loan"
+)
+
+// AdminRedemptionUpdateRequest defines model for AdminRedemptionUpdateRequest.
+type AdminRedemptionUpdateRequest struct {
+	// PayaTrackingCode The Paya tracking code
+	PayaTrackingCode *string `json:"payaTrackingCode,omitempty"`
+
+	// Status The status of the redemption request
+	Status AdminRedemptionUpdateRequestStatus `json:"status"`
+}
+
+// AdminRedemptionUpdateRequestStatus The status of the redemption request
+type AdminRedemptionUpdateRequestStatus string
+
+// AuthTelegramRequest defines model for AuthTelegramRequest.
+type AuthTelegramRequest struct {
+	// Initdata Telegram init data
+	Initdata string `json:"initdata"`
+}
+
+// Balance defines model for Balance.
+type Balance struct {
+	Balance Currency `json:"balance"`
+	Coin    Coin     `json:"coin"`
+	Locked  Currency `json:"locked"`
+}
+
+// BankInfo defines model for BankInfo.
+type BankInfo struct {
+	// BankName Bank name
+	BankName string `json:"bankName"`
+
+	// CardNumber Card number
+	CardNumber string `json:"cardNumber"`
+
+	// Iban IBAN
+	Iban string `json:"iban"`
+}
+
+// BulletContent defines model for BulletContent.
+type BulletContent struct {
+	Bullets []string `json:"bullets"`
+	Text    string   `json:"text"`
+	Title   string   `json:"title"`
+}
+
+// Coin defines model for Coin.
+type Coin struct {
+	Config              CoinConfig        `json:"config"`
+	Content             BulletContent     `json:"content"`
+	DepositableNetworks []Network         `json:"depositableNetworks"`
+	LogoUri             string            `json:"logoUri"`
+	Name                InternationalName `json:"name"`
+
+	// Symbol Symbol representation
+	Symbol               Symbol    `json:"symbol"`
+	WithdrawableNetworks []Network `json:"withdrawableNetworks"`
+}
+
+// CoinConfig defines model for CoinConfig.
+type CoinConfig struct {
+	IsTradeable bool `json:"isTradeable"`
+
+	// MinWithdrawal Map of network to amount
+	MinWithdrawal MinWithdrawal `json:"minWithdrawal"`
+	NeedsMemo     bool          `json:"needsMemo"`
+
+	// WithdrawFees Map of network to amount
+	WithdrawFees WithdrawFees `json:"withdrawFees"`
+}
+
+// CoinResponse defines model for CoinResponse.
+type CoinResponse struct {
+	Data []Coin `json:"data"`
+}
+
+// CreateChildUserRequest defines model for CreateChildUserRequest.
+type CreateChildUserRequest struct {
+	// Username the username of the child user
+	Username string `json:"username"`
+}
+
+// Currency defines model for Currency.
+type Currency struct {
+	Values *map[string]string `json:"values,omitempty"`
+}
+
+// DepositResponse defines model for DepositResponse.
+type DepositResponse struct {
+	// Address Deposit address
+	Address string  `json:"address"`
+	Network Network `json:"network"`
+
+	// Symbol Coin symbol
+	Symbol string `json:"symbol"`
+}
+
+// DetailedLoanToValueOptions defines model for DetailedLoanToValueOptions.
+type DetailedLoanToValueOptions struct {
+	Name InternationalName `json:"name"`
+
+	// Value The loan to value of the vault.
+	Value string `json:"value"`
+}
+
+// EmailOtpSubmitRequest defines model for EmailOtpSubmitRequest.
+type EmailOtpSubmitRequest struct {
+	// Code OTP code
+	Code int64 `json:"code"`
+}
+
+// Error defines model for Error.
+type Error struct {
+	// Msg Error message
+	Msg     string   `json:"msg"`
+	Reasons []string `json:"reasons"`
+}
+
+// ErrorDetail defines model for ErrorDetail.
+type ErrorDetail struct {
+	Solutions []string `json:"solutions"`
+
+	// UserMessage User-friendly error message
+	UserMessage string `json:"userMessage"`
+}
+
+// ExternalTransaction defines model for ExternalTransaction.
+type ExternalTransaction struct {
+	Amount Currency `json:"Amount"`
+
+	// Comment A comment associated with the transaction
+	Comment *string `json:"Comment"`
+
+	// From The address from which the transaction originated
+	From string `json:"From"`
+
+	// Hash The hash of the transaction
+	Hash string `json:"Hash"`
+
+	// Id Unique identifier of the transaction
+	Id      int64             `json:"Id"`
+	Network Network           `json:"Network"`
+	Status  TransactionStatus `json:"Status"`
+
+	// Symbol Symbol representation
+	Symbol Symbol    `json:"Symbol"`
+	Time   Timestamp `json:"Time"`
+
+	// To The address to which the transaction is sent
+	To   string          `json:"To"`
+	Type TransactionType `json:"Type"`
+}
+
+// FriendPoints defines model for FriendPoints.
+type FriendPoints struct {
+	// FirstName the first name of the friend
+	FirstName string `json:"firstName"`
+
+	// Points the points of the friend
+	Points int64 `json:"points"`
+}
+
+// FriendPointsResponse defines model for FriendPointsResponse.
+type FriendPointsResponse struct {
+	Data []FriendPoints `json:"data"`
+}
+
+// HealthStatus defines model for HealthStatus.
+type HealthStatus struct {
+	Status *string `json:"status,omitempty"`
+}
+
+// InternationalName defines model for InternationalName.
+type InternationalName map[string]string
+
+// JwtResponse defines model for JwtResponse.
+type JwtResponse struct {
+	// Token JWT token
+	Token string `json:"token"`
+}
+
+// KycConfirmRequest defines model for KycConfirmRequest.
+type KycConfirmRequest struct {
+	// Id KYC request ID
+	Id string `json:"id"`
+}
+
+// KycRequest defines model for KycRequest.
+type KycRequest struct {
+	// CardNumber Card number
+	CardNumber string `json:"cardNumber"`
+
+	// DateOfBirth Date of birth
+	DateOfBirth string `json:"dateOfBirth"`
+
+	// NationalId National ID
+	NationalId string `json:"nationalId"`
+}
+
+// KycResponse defines model for KycResponse.
+type KycResponse struct {
+	BankInfo BankInfo `json:"bankInfo"`
+
+	// DateOfBirth Date of birth
+	DateOfBirth string `json:"dateOfBirth"`
+
+	// FirstName First name
+	FirstName string `json:"firstName"`
+
+	// Id KYC request ID
+	Id string `json:"id"`
+
+	// LastName Last name
+	LastName string `json:"lastName"`
+
+	// NationalId National code
+	NationalId string `json:"nationalId"`
+}
+
+// LoanCreateRequest defines model for LoanCreateRequest.
+type LoanCreateRequest struct {
+	// Collateral Collateral amount
+	Collateral *string `json:"collateral,omitempty"`
+
+	// Debt Debt amount
+	Debt *string `json:"debt,omitempty"`
+
+	// Intent Intent to create a vault
+	Intent LoanCreateRequestIntent `json:"intent"`
+
+	// LoanToValueOption The loan to value percentage options
+	LoanToValueOption LoanToValueOptions `json:"loanToValueOption"`
+
+	// PlanName The name of the loan plan
+	PlanName string `json:"planName"`
+
+	// Symbol Coin symbol
+	Symbol string `json:"symbol"`
+}
+
+// LoanCreateRequestIntent Intent to create a vault
+type LoanCreateRequestIntent string
+
+// LoanPlan defines model for LoanPlan.
+type LoanPlan struct {
+	AcceptableCoins []Coin `json:"acceptableCoins"`
+
+	// Fee The annual fee of the loan plan
+	Fee                string                       `json:"fee"`
+	LoanToValueOptions []DetailedLoanToValueOptions `json:"loanToValueOptions"`
+	MaxDebt            Currency                     `json:"maxDebt"`
+
+	// MinCollateralizationRatio The minimum collateralization ratio of the loan plan
+	MinCollateralizationRatio string   `json:"minCollateralizationRatio"`
+	MinDebt                   Currency `json:"minDebt"`
+
+	// Name The name of the loan plan
+	Name string `json:"name"`
+}
+
+// LoanPlanResponse defines model for LoanPlanResponse.
+type LoanPlanResponse struct {
+	Data []LoanPlan `json:"data"`
+}
+
+// LoanToValueOptions The loan to value percentage options
+type LoanToValueOptions string
+
+// LoansResponse defines model for LoansResponse.
+type LoansResponse struct {
+	Collateral Currency `json:"collateral"`
+
+	// CollateralizationRatio The collateralization ratio of the vault.
+	CollateralizationRatio string   `json:"collateralizationRatio"`
+	Debt                   Currency `json:"debt"`
+
+	// Id Identifier for the vault.
+	Id               *string  `json:"id,omitempty"`
+	LiquidationPrice Currency `json:"liquidationPrice"`
+
+	// LoanToValue The loan to value of the vault.
+	LoanToValue                   string            `json:"loanToValue"`
+	Plan                          LoanPlan          `json:"plan"`
+	Principal                     Currency          `json:"principal"`
+	ScaledDebt                    Currency          `json:"scaledDebt"`
+	State                         InternationalName `json:"state"`
+	TermsAndConditions            *BulletContent    `json:"termsAndConditions,omitempty"`
+	UpdatedCollateralTokenBalance *Currency         `json:"updatedCollateralTokenBalance,omitempty"`
+	UpdatedDebtTokenBalance       *Currency         `json:"updatedDebtTokenBalance,omitempty"`
+
+	// UserId Identifier for the user.
+	UserId int64 `json:"userId"`
+}
+
+// LoansResponseList defines model for LoansResponseList.
+type LoansResponseList struct {
+	Data []LoansResponse `json:"data"`
+}
+
+// LocalizedMessages Localized error messages
+type LocalizedMessages map[string]ErrorDetail
+
+// LoginRequest defines model for LoginRequest.
+type LoginRequest struct {
+	// Email user's email
+	Email string `json:"email"`
+
+	// Password user's password
+	Password string `json:"password"`
+}
+
+// MinWithdrawal Map of network to amount
+type MinWithdrawal = NetworkAmount
+
+// Network defines model for Network.
+type Network struct {
+	LogoUri string            `json:"logoUri"`
+	Name    InternationalName `json:"name"`
+}
+
+// NetworkAmount Map of network to amount
+type NetworkAmount map[string]string
+
+// Payment defines model for Payment.
+type Payment struct {
+	// Amount Payment amount
+	Amount string `json:"amount"`
+
+	// Hash Payment hash
+	Hash string `json:"hash"`
+
+	// SenderFirstName Sender first name
+	SenderFirstName string `json:"senderFirstName"`
+
+	// ShareUrl Share URL
+	ShareUrl string `json:"shareUrl"`
+
+	// Text Payment text
+	Text string `json:"text"`
+
+	// Url Payment URL
+	Url string `json:"url"`
+}
+
+// PaymentRequest defines model for PaymentRequest.
+type PaymentRequest struct {
+	// Amount Payment amount
+	Amount string `json:"amount"`
+}
+
+// PhoneOtpSubmitRequest defines model for PhoneOtpSubmitRequest.
+type PhoneOtpSubmitRequest struct {
+	// Code Confirmation code
+	Code int64 `json:"code"`
+}
+
+// ProfileResponse defines model for ProfileResponse.
+type ProfileResponse struct {
+	BankInfo []BankInfo `json:"bankInfo"`
+	Points   int64      `json:"points"`
+	Referral Referral   `json:"referral"`
+	User     User       `json:"user"`
+}
+
+// Redemption defines model for Redemption.
+type Redemption struct {
+	Amount              Currency  `json:"amount"`
+	CreatedAt           Timestamp `json:"createdAt"`
+	DestinationBankInfo BankInfo  `json:"destinationBankInfo"`
+
+	// Id The ID of the redemption request
+	Id string `json:"id"`
+
+	// PayaTrackingCode The Paya tracking code
+	PayaTrackingCode *string           `json:"payaTrackingCode,omitempty"`
+	Status           InternationalName `json:"status"`
+	UpdatedAt        *Timestamp        `json:"updatedAt,omitempty"`
+}
+
+// RedemptionRequest defines model for RedemptionRequest.
+type RedemptionRequest struct {
+	// SmsOtp The SMS OTP code
+	SmsOtp int64 `json:"SmsOtp"`
+
+	// Amount The amount to be redeemed in ZAR
+	Amount string `json:"amount"`
+
+	// DestinationCardNumber The card number to which the redemption amount will be transferred
+	DestinationCardNumber string `json:"destinationCardNumber"`
+}
+
+// RedemptionResponse defines model for RedemptionResponse.
+type RedemptionResponse struct {
+	Data []Redemption `json:"data"`
+}
+
+// Referral defines model for Referral.
+type Referral struct {
+	CreatedAt  Timestamp `json:"createdAt"`
+	Id         int64     `json:"id"`
+	Link       *string   `json:"link"`
+	Name       *string   `json:"name"`
+	ReferrerId int64     `json:"referrerId"`
+	ShareUrl   *string   `json:"shareUrl,omitempty"`
+	UsageCount int       `json:"usageCount"`
+	UsageLimit int       `json:"usageLimit"`
+}
+
+// ReferralResponse defines model for ReferralResponse.
+type ReferralResponse struct {
+	Data []Referral `json:"data"`
+}
+
+// RepayLoanRequest defines model for RepayLoanRequest.
+type RepayLoanRequest struct {
+	// Intent Intent to repay a loan
+	Intent RepayLoanRequestIntent `json:"intent"`
+
+	// LoanId The id of a loan
+	LoanId string `json:"loanId"`
+}
+
+// RepayLoanRequestIntent Intent to repay a loan
+type RepayLoanRequestIntent string
+
+// SignUpRequest defines model for SignUpRequest.
+type SignUpRequest struct {
+	// Email user's email
+	Email string `json:"email"`
+
+	// Password user's password
+	Password string `json:"password"`
+}
+
+// SimpleResponse defines model for SimpleResponse.
+type SimpleResponse struct {
+	// Messages Localized messages
+	Messages map[string]string `json:"messages"`
+}
+
+// SwapRequest defines model for SwapRequest.
+type SwapRequest struct {
+	// Amount Amount to swap
+	Amount *string `json:"amount,omitempty"`
+
+	// In Coin symbol to swap from
+	In *string `json:"in,omitempty"`
+
+	// Intent Intent to swap
+	Intent SwapRequestIntent `json:"intent"`
+
+	// Out Coin symbol to swap to
+	Out *string `json:"out,omitempty"`
+
+	// QuoteId Quote ID, required if intent is Swap
+	QuoteId *string `json:"quoteId,omitempty"`
+
+	// TradeType Trade type
+	TradeType *SwapRequestTradeType `json:"tradeType,omitempty"`
+}
+
+// SwapRequestIntent Intent to swap
+type SwapRequestIntent string
+
+// SwapRequestTradeType Trade type
+type SwapRequestTradeType string
+
+// SwapResponse defines model for SwapResponse.
+type SwapResponse struct {
+	Amount     string     `json:"amount"`
+	CreatedAt  Timestamp  `json:"createdAt"`
+	ExecutedAt *Timestamp `json:"executedAt,omitempty"`
+	ExpiresAt  Timestamp  `json:"expiresAt"`
+	Id         string     `json:"id"`
+
+	// In Symbol representation
+	In                    Symbol  `json:"in"`
+	InputBalanceAfterSwap *string `json:"inputBalanceAfterSwap,omitempty"`
+
+	// Out Symbol representation
+	Out                    Symbol                `json:"out"`
+	OutputBalanceAfterSwap *string               `json:"outputBalanceAfterSwap,omitempty"`
+	Quote                  string                `json:"quote"`
+	Rate                   string                `json:"rate"`
+	TradeType              SwapResponseTradeType `json:"tradeType"`
+	Value                  Currency              `json:"value"`
+}
+
+// SwapResponseTradeType defines model for SwapResponse.TradeType.
+type SwapResponseTradeType string
+
+// Symbol Symbol representation
+type Symbol string
+
+// Task defines model for Task.
+type Task struct {
+	CompletedAt *Timestamp `json:"completedAt,omitempty"`
+
+	// Description Task description
+	Description string `json:"description"`
+
+	// Id Task ID
+	Id string `json:"id"`
+
+	// Points Task reward
+	Points int64 `json:"points"`
+
+	// Status Task status. Possible values "Pending", "Completed"
+	Status string `json:"status"`
+}
+
+// TaskResponse defines model for TaskResponse.
+type TaskResponse struct {
+	Data []Task `json:"data"`
+}
+
+// TelegramProfile defines model for TelegramProfile.
+type TelegramProfile struct {
+	FirstName string  `json:"firstName"`
+	LastName  *string `json:"lastName"`
+	PhotoUrl  *string `json:"photoUrl"`
+	Username  *string `json:"username"`
+}
+
+// Timestamp defines model for Timestamp.
+type Timestamp struct {
+	// Gregorian Gregorian date
+	Gregorian string `json:"gregorian"`
+
+	// Jalaali Jalaali date
+	Jalaali string `json:"jalaali"`
+}
+
+// Transaction defines model for Transaction.
+type Transaction struct {
+	Amount Currency `json:"amount"`
+
+	// Direction Equal to "Inbound" if the transaction is directed to the user, and "Outbound" if the transaction is directed from the user.
+	Direction           TransactionDirection `json:"direction"`
+	ExternalTransaction *ExternalTransaction `json:"externalTransaction,omitempty"`
+
+	// From The ID of the user from whom the transaction originated
+	From string `json:"from"`
+
+	// Id Unique identifier of the transaction
+	Id int64 `json:"id"`
+
+	// Symbol Symbol representation
+	Symbol Symbol    `json:"symbol"`
+	Time   Timestamp `json:"time"`
+
+	// To The ID of the user to whom the transaction is directed
+	To   string          `json:"to"`
+	Type TransactionType `json:"type"`
+}
+
+// TransactionDirection Equal to "Inbound" if the transaction is directed to the user, and "Outbound" if the transaction is directed from the user.
+type TransactionDirection string
+
+// TransactionResponse defines model for TransactionResponse.
+type TransactionResponse struct {
+	Data []Transaction `json:"data"`
+}
+
+// TransactionStatus defines model for TransactionStatus.
+type TransactionStatus string
+
+// TransactionType defines model for TransactionType.
+type TransactionType string
+
+// UpdateEmailRequest defines model for UpdateEmailRequest.
+type UpdateEmailRequest struct {
+	// Email Email address
+	Email string `json:"email"`
+}
+
+// UpdatePhoneRequest defines model for UpdatePhoneRequest.
+type UpdatePhoneRequest struct {
+	// Number Phone number
+	Number string `json:"number"`
+}
+
+// User defines model for User.
+type User struct {
+	Email *string `json:"email,omitempty"`
+
+	// FirstName User's first name
+	FirstName       *string `json:"firstName,omitempty"`
+	IsAdmin         *bool   `json:"isAdmin,omitempty"`
+	IsChild         *bool   `json:"isChild,omitempty"`
+	IsEmailVerified *bool   `json:"isEmailVerified,omitempty"`
+	IsKycVerified   *bool   `json:"isKycVerified,omitempty"`
+	IsPhoneVerified *bool   `json:"isPhoneVerified,omitempty"`
+	IsSuperUser     *bool   `json:"isSuperUser,omitempty"`
+
+	// LastName User's last name
+	LastName *string          `json:"lastName,omitempty"`
+	Phone    *string          `json:"phone,omitempty"`
+	Telegram *TelegramProfile `json:"telegram,omitempty"`
+	Username *string          `json:"username,omitempty"`
+}
+
+// UserError defines model for UserError.
+type UserError struct {
+	// Messages Localized error messages
+	Messages LocalizedMessages `json:"messages"`
+}
+
+// WalletBalance defines model for WalletBalance.
+type WalletBalance struct {
+	Balances []Balance `json:"balances"`
+	Total    Currency  `json:"total"`
+}
+
+// WithdrawFees Map of network to amount
+type WithdrawFees = NetworkAmount
+
+// WithdrawRequest defines model for WithdrawRequest.
+type WithdrawRequest struct {
+	Amount           string                `json:"amount"`
+	BlockExplorerUrl *string               `json:"blockExplorerUrl"`
+	Comment          *string               `json:"comment"`
+	Id               int64                 `json:"id"`
+	Network          Network               `json:"network"`
+	Status           WithdrawRequestStatus `json:"status"`
+
+	// Symbol Symbol representation
+	Symbol      Symbol    `json:"symbol"`
+	TimeCreated Timestamp `json:"timeCreated"`
+	To          string    `json:"to"`
+}
+
+// WithdrawRequestStatus defines model for WithdrawRequest.Status.
+type WithdrawRequestStatus string
+
+// WithdrawRequestBody defines model for WithdrawRequestBody.
+type WithdrawRequestBody struct {
+	// Address Withdrawal address
+	Address string `json:"address"`
+
+	// Amount Amount to withdraw
+	Amount  string  `json:"amount"`
+	Comment *string `json:"comment"`
+
+	// Network Network to withdraw
+	Network string `json:"network"`
+
+	// Symbol Coin symbol
+	Symbol string `json:"symbol"`
+}
+
+// WithdrawRequestPreview defines model for WithdrawRequestPreview.
+type WithdrawRequestPreview struct {
+	// Address Withdrawal address
+	Address              string   `json:"address"`
+	Amount               Currency `json:"amount"`
+	BalanceAfterWithdraw Currency `json:"balanceAfterWithdraw"`
+	Fee                  Currency `json:"fee"`
+	Network              Network  `json:"network"`
+
+	// Symbol Symbol representation
+	Symbol Symbol `json:"symbol"`
+}
+
+// WithdrawRequestResponse defines model for WithdrawRequestResponse.
+type WithdrawRequestResponse struct {
+	Data []WithdrawRequest `json:"data"`
+}
+
+// WithdrawResponseBody defines model for WithdrawResponseBody.
+type WithdrawResponseBody struct {
+	// Id Withdrawal request ID
+	Id int64 `json:"id"`
+}
+
+// WithdrawalIdRequest defines model for WithdrawalIdRequest.
+type WithdrawalIdRequest = int64
+
+// ReferralIdParameter defines model for ReferralIdParameter.
+type ReferralIdParameter = int64
+
+// GetAllRedemptionsParams defines parameters for GetAllRedemptions.
+type GetAllRedemptionsParams struct {
+	// State Cursor for pagination
+	State *GetAllRedemptionsParamsState `form:"state,omitempty" json:"state,omitempty"`
+}
+
+// GetAllRedemptionsParamsState defines parameters for GetAllRedemptions.
+type GetAllRedemptionsParamsState string
+
+// GetOtpParams defines parameters for GetOtp.
+type GetOtpParams struct {
+	// Channel Channel to send OTP
+	Channel GetOtpParamsChannel `form:"channel" json:"channel"`
+}
+
+// GetOtpParamsChannel defines parameters for GetOtp.
+type GetOtpParamsChannel string
+
+// GenerateJwtTokenParams defines parameters for GenerateJwtToken.
+type GenerateJwtTokenParams struct {
+	// Duration Token duration in days
+	Duration GenerateJwtTokenParamsDuration `form:"duration" json:"duration"`
+}
+
+// GenerateJwtTokenParamsDuration defines parameters for GenerateJwtToken.
+type GenerateJwtTokenParamsDuration int
+
+// DepositMoneyParams defines parameters for DepositMoney.
+type DepositMoneyParams struct {
+	// Network Network to deposit
+	Network string `form:"network" json:"network"`
+
+	// Symbol Coin symbol
+	Symbol string `form:"symbol" json:"symbol"`
+}
+
+// GetUserLoansParams defines parameters for GetUserLoans.
+type GetUserLoansParams struct {
+	// State loan state
+	State *GetUserLoansParamsState `form:"state,omitempty" json:"state,omitempty"`
+
+	// PlanName loan plan name
+	PlanName *string `form:"planName,omitempty" json:"planName,omitempty"`
+}
+
+// GetUserLoansParamsState defines parameters for GetUserLoans.
+type GetUserLoansParamsState string
+
+// EstimateLoanCollateralParams defines parameters for EstimateLoanCollateral.
+type EstimateLoanCollateralParams struct {
+	// PlanName The name of the loan plan
+	PlanName string `form:"planName" json:"planName"`
+
+	// LoanToValueOption The desired loan to value option
+	LoanToValueOption LoanToValueOptions `form:"loanToValueOption" json:"loanToValueOption"`
+
+	// Amount Loan/Collateral amount
+	Amount string `form:"amount" json:"amount"`
+
+	// InputType The type of the input amount
+	InputType EstimateLoanCollateralParamsInputType `form:"inputType" json:"inputType"`
+}
+
+// EstimateLoanCollateralParamsInputType defines parameters for EstimateLoanCollateral.
+type EstimateLoanCollateralParamsInputType string
+
+// GetReferralsParams defines parameters for GetReferrals.
+type GetReferralsParams struct {
+	// Name Referral name
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetUserTransactionsParams defines parameters for GetUserTransactions.
+type GetUserTransactionsParams struct {
+	// Cursor Cursor for pagination
+	Cursor *int `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Limit the number of transactions returned (default is 100)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// VerifyUserEmailParams defines parameters for VerifyUserEmail.
+type VerifyUserEmailParams struct {
+	// Token Verification token
+	Token string `form:"token" json:"token"`
+}
+
+// UpdateRedemptionStatusJSONRequestBody defines body for UpdateRedemptionStatus for application/json ContentType.
+type UpdateRedemptionStatusJSONRequestBody = AdminRedemptionUpdateRequest
+
+// LoginWithEmailAndPasswordJSONRequestBody defines body for LoginWithEmailAndPassword for application/json ContentType.
+type LoginWithEmailAndPasswordJSONRequestBody = LoginRequest
+
+// SignupWithEmailAndPasswordJSONRequestBody defines body for SignupWithEmailAndPassword for application/json ContentType.
+type SignupWithEmailAndPasswordJSONRequestBody = SignUpRequest
+
+// AuthenticateWithTelegramJSONRequestBody defines body for AuthenticateWithTelegram for application/json ContentType.
+type AuthenticateWithTelegramJSONRequestBody = AuthTelegramRequest
+
+// CreateLoanVaultJSONRequestBody defines body for CreateLoanVault for application/json ContentType.
+type CreateLoanVaultJSONRequestBody = LoanCreateRequest
+
+// RepayLoanJSONRequestBody defines body for RepayLoan for application/json ContentType.
+type RepayLoanJSONRequestBody = RepayLoanRequest
+
+// CreatePaymentJSONRequestBody defines body for CreatePayment for application/json ContentType.
+type CreatePaymentJSONRequestBody = PaymentRequest
+
+// RedeemZarJSONRequestBody defines body for RedeemZar for application/json ContentType.
+type RedeemZarJSONRequestBody = RedemptionRequest
+
+// SwapCoinsJSONRequestBody defines body for SwapCoins for application/json ContentType.
+type SwapCoinsJSONRequestBody = SwapRequest
+
+// CreateChildUserJSONRequestBody defines body for CreateChildUser for application/json ContentType.
+type CreateChildUserJSONRequestBody = CreateChildUserRequest
+
+// VerifyUserEmailAddressJSONRequestBody defines body for VerifyUserEmailAddress for application/json ContentType.
+type VerifyUserEmailAddressJSONRequestBody = UpdateEmailRequest
+
+// SubmitEmailConfirmationOtpJSONRequestBody defines body for SubmitEmailConfirmationOtp for application/json ContentType.
+type SubmitEmailConfirmationOtpJSONRequestBody = EmailOtpSubmitRequest
+
+// SubmitKycJSONRequestBody defines body for SubmitKyc for application/json ContentType.
+type SubmitKycJSONRequestBody = KycRequest
+
+// ConfirmKycJSONRequestBody defines body for ConfirmKyc for application/json ContentType.
+type ConfirmKycJSONRequestBody = KycConfirmRequest
+
+// VerifyPhoneNumberJSONRequestBody defines body for VerifyPhoneNumber for application/json ContentType.
+type VerifyPhoneNumberJSONRequestBody = UpdatePhoneRequest
+
+// ConfirmPhoneNumberJSONRequestBody defines body for ConfirmPhoneNumber for application/json ContentType.
+type ConfirmPhoneNumberJSONRequestBody = PhoneOtpSubmitRequest
+
+// PreviewWithdrawalJSONRequestBody defines body for PreviewWithdrawal for application/json ContentType.
+type PreviewWithdrawalJSONRequestBody = WithdrawRequestBody
+
+// RequestWithdrawalJSONRequestBody defines body for RequestWithdrawal for application/json ContentType.
+type RequestWithdrawalJSONRequestBody = WithdrawRequestBody
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
