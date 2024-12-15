@@ -1,0 +1,3423 @@
+openapi: 3.0.0
+info:
+  title: Zarban API
+  version: 2.0.0
+  description: API for Zarban services.
+  contact:
+    name: Zarban Support Team
+    email: info@zarban.io
+    url: https://zarban.io/
+
+servers:
+  - url: https://api.zarban.io
+    description: Production server (uses live data)
+
+tags:
+  - name: Websocket
+    description: Operations related to websocket connections
+  - name: Permit
+    description: Operations related to token permits
+  - name: Swap
+    description: Operations related to swap
+  - name: Orders
+    description: Operations related to orders
+  - name: Addresses
+    description: Operations related to Addresses
+  - name: LendingPool
+    description: Operations related to LendingPool
+  - name: StableCoinSystem
+    description: Operations related to Zarban Stable-Coin System
+  - name: Ilks
+    description: Operations related to Ilks
+  - name: Collector
+    description: Operations related to Collector
+  - name: Deposits
+    description: Operations related to Deposits of LendingPool
+  - name: Borrows
+    description: Operations related to Borrows of LendingPool
+  - name: Logs
+    description: Operations related to Logs
+  - name: Prices
+    description: Operations related to Prices
+  - name: Vaults
+    description: Operations related to Vaults
+  - name: Accounts
+    description: Operations related to Accounts
+  - name: Points
+    description: Operations related to Points
+  - name: Staking
+    description: Operations related to Staking
+
+paths:
+  /v2/ws:
+    summary: Websocket to Fetch Unfilled Orders
+    description: Get a list of unfilled orders filtered by different parameters.
+    get:
+      operationId: getUnfilledOrdersWebsocket
+      tags:
+        - Websocket
+      summary: Websocket Upgrade
+      description: Upgrade to websocket connection
+      responses:
+        "101":
+          description: Switching Protocols
+  /v2/permit/single:
+    get:
+      operationId: getSingleTokenPermit
+      tags:
+        - Permit
+      summary: Get permit for single token
+      description: Get permit for single token
+      parameters:
+        - name: token
+          in: query
+          description: Ethereum address of the token
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: user
+          in: query
+          description: Ethereum address of the user
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermitSingle"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/swap/quote:
+    post:
+      operationId: getSwapQuote
+      tags:
+        - Swap
+      summary: Get a quote for a swap
+      description: Get a quote for a swap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/orders/sync:
+    post:
+      operationId: syncOrder
+      tags:
+        - Orders
+      summary: Updates Order Entity
+      description: updates an order entity in database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/orders:
+    get:
+      operationId: getUnfilledOrders
+      summary: Fetch Unfilled Orders
+      description: Get a list of unfilled orders filtered by different parameters.
+      tags:
+        - Orders
+      parameters:
+        - name: type
+          in: query
+          description: Type of the order
+          required: false
+          schema:
+            type: string
+            enum:
+              - limit
+              - dutch
+        - name: hash
+          in: query
+          description: order hash
+          required: false
+          schema:
+            type: string
+            pattern: ^0x[0-9,a-z,A-Z]{64}$
+        - name: status
+          in: query
+          description: Status of the order
+          required: false
+          schema:
+            type: string
+            enum:
+              - open
+              - expired
+              - error
+              - cancelled
+              - filled
+              - insufficient-funds
+        - name: offerer
+          in: query
+          description: Ethereum address of the offerer
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: filler
+          in: query
+          description: Ethereum address of the filler
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: decayStartTime
+          in: query
+          description: Decay start time
+          required: false
+          schema:
+            $ref: "#/components/schemas/TimeRange"
+        - name: decayEndTime
+          in: query
+          description: Decay end time
+          required: false
+          schema:
+            $ref: "#/components/schemas/TimeRange"
+        - name: deadline
+          in: query
+          description: Order deadline
+          required: false
+          schema:
+            $ref: "#/components/schemas/TimeRange"
+        - name: cursor
+          in: query
+          description: Cursor for pagination
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Limit the number of orders returned (default is 10)
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          description: Bad request (e.g. invalid filter parameters).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/addresses:
+    get:
+      operationId: getAllAddresses
+      tags:
+        - Addresses
+      summary: Get all addresses
+      description: All addresses knows to Zarban.
+      parameters:
+        - in: query
+          name: format
+          required: false
+          schema:
+            type: string
+          description: The type of addresses to return
+      responses:
+        "200":
+          description: A JSON object with addresses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressResponse"
+
+  /v2/lendingpool/tx/deposit:
+    post:
+      operationId: createLendingPoolDeposit
+      tags:
+        - LendingPool
+      summary: Deposit to lending pool
+      description: Deposit to lending pool
+      requestBody:
+        required: true
+        description: Deposit transaction request, if amount is not provided, it will be calculated based on the token balance
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LendingpoolDepositTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LendingpoolDepositTxResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+
+  /v2/lendingpool/tx/withdraw:
+    post:
+      operationId: createLendingPoolWithdraw
+      tags:
+        - LendingPool
+      summary: Withdraw from lending pool
+      description: Withdraw from lending pool
+      requestBody:
+        required: true
+        description: Withdraw transaction request, if amount is not provided, it will be calculated based on the user account status
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LendingpoolWithdrawTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LendingpoolWithdrawTxResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/lendingpool/tx/borrow:
+    post:
+      operationId: createLendingPoolBorrow
+      tags:
+        - LendingPool
+      summary: Borrow from lending pool
+      description: Borrow from lending pool
+      requestBody:
+        required: true
+        description: Borrow transaction request, if amount is not provided, it will be calculated based on the token balance
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LendingpoolBorrowTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LendingpoolBorrowTxResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/lendingpool/tx/repay:
+    post:
+      operationId: createLendingPoolRepay
+      tags:
+        - LendingPool
+      summary: Repay to lending pool
+      description: Repay to lending pool
+      requestBody:
+        required: true
+        description: Repay transaction request, if amount is not provided, it will repay the maximum possible amount
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LendingpoolRepayTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LendingpoolRepayTxResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/lendingpool/tx/useassetascollateral:
+    post:
+      operationId: setLendingPoolAssetCollateral
+      tags:
+        - LendingPool
+      summary: Enable/Disable asset as collateral
+      description: Allows to enable/disable a specific asset as collateral
+      requestBody:
+        required: true
+        description: UseAssetAsCollateral transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LendingpoolUseAssetAsCollateralTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LendingpoolUseAssetAsCollateralTxResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/stablecoinsystem/tx/createvault:
+    post:
+      operationId: createStableCoinVault
+      tags:
+        - StableCoinSystem
+      summary: Create vault
+      description: Create vault
+      requestBody:
+        required: true
+        description: Create vault transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemCreateVaultTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/stablecoinsystem/tx/depositcollateral:
+    post:
+      operationId: depositStableCoinCollateral
+      tags:
+        - StableCoinSystem
+      summary: Deposit collateral
+      description: Deposit collateral
+      requestBody:
+        required: true
+        description: Deposit collateral transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemDepositCollateralTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/stablecoinsystem/tx/withdrawcollateral:
+    post:
+      operationId: withdrawCollateralTransaction
+      tags:
+        - StableCoinSystem
+      summary: Withdraw collateral
+      description: Withdraw collateral
+      requestBody:
+        required: true
+        description: Withdraw collateral transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemWithdrawCollateralTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/stablecoinsystem/tx/mintzar:
+    post:
+      operationId: mintZarTransaction
+      tags:
+        - StableCoinSystem
+      summary: Mint ZAR
+      description: Mint ZAR
+      requestBody:
+        required: true
+        description: Mint ZAR transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemMintZarTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/stablecoinsystem/tx/repayzar:
+    post:
+      operationId: repayZarTransaction
+      tags:
+        - StableCoinSystem
+      summary: Repay ZAR
+      description: Repay ZAR
+      requestBody:
+        required: true
+        description: Repay ZAR transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemRepayZarTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/stablecoinsystem/tx/bark:
+    post:
+      operationId: liquidateVaultTransaction
+      tags:
+        - StableCoinSystem
+      summary: liquidate a vault
+      description: liquidate a vault
+      requestBody:
+        required: true
+        description: Liquidate a Vault transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemBarkTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v2/stablecoinsystem/auctions/tx/zarjoin:
+    post:
+      operationId: approveAndJoinZarTransaction
+      tags:
+        - StableCoinSystem
+      summary: approve and join ZAR token into Vat contract
+      description: approve and join ZAR token into Vat contract
+      requestBody:
+        required: true
+        description: Approve and join Zar token into Vat contract transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemZarjoinTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v2/stablecoinsystem/auctions/tx/zarexit:
+    post:
+      operationId: exitZarTransaction
+      tags:
+        - StableCoinSystem
+      summary: exit ZAR token from Vat contract
+      description: exit ZAR token from Vat contract
+      requestBody:
+        required: true
+        description: exit Zar token from Vat contract transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemZarexitTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v2/stablecoinsystem/auctions/tx/gemexit:
+    post:
+      operationId: exitGemTransaction
+      tags:
+        - StableCoinSystem
+      summary: exit Gem token (which can be used as collateral) from Vat contract
+      description: exit Gem token (which can be used as collateral) from Vat contract
+      requestBody:
+        required: true
+        description: exit Zar token from Vat contract transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemGemexitTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v2/stablecoinsystem/auctions/tx/redo:
+    post:
+      operationId: resetAuctionTransaction
+      tags:
+        - StableCoinSystem
+      summary: reset a auction
+      description: reset a auction
+      requestBody:
+        required: true
+        description: Reset a Auction transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemRedoTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v2/stablecoinsystem/auctions/tx/take:
+    post:
+      operationId: takeAuctionTransaction
+      tags:
+        - StableCoinSystem
+      summary: take a auction
+      description: take a auction
+      requestBody:
+        required: true
+        description: Take a Auction transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StablecoinSystemTakeTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/lendingpool/reserves:
+    get:
+      operationId: fetchReserveDataByAsset
+      tags:
+        - LendingPool
+      summary: Fetch Reserve Data By Asset
+      description: Retrieve data of reserves
+      parameters:
+        - in: query
+          name: asset
+          required: false
+          description: The asset address in hexadecimal format.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedReserveData"
+        "400":
+          description: Bad request (e.g. invalid asset address).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/ilks:
+    get:
+      operationId: getAllIlks
+      tags:
+        - Ilks
+        - StableCoinSystem
+      summary: Get all Ilks
+      description: Retrieve a list of all available ilks.
+      responses:
+        "200":
+          description: Successfully retrieved list of ilks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IlksResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/ilks/{name}:
+    get:
+      operationId: getIlkByName
+      tags:
+        - Ilks
+        - StableCoinSystem
+      summary: Get Ilk by name
+      description: Retrieve an Ilk by providing its name.
+      parameters:
+        - name: name
+          in: path
+          description: Name of the ILK
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully retrieved ILK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ilk"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/stats:
+    get:
+      operationId: getCollectorData
+      tags:
+        - Collector
+        - StableCoinSystem
+      summary: Get collector data
+      description: Get collector data
+      responses:
+        "200":
+          description: A JSON object with collector data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+
+  /v2/lendingpool/deposits:
+    get:
+      operationId: getUserDeposits
+      tags:
+        - Deposits
+        - LendingPool
+      summary: Get user deposits of Lendingpool
+      description: Get user deposits of Lendingpool
+      parameters:
+        - name: user
+          in: query
+          description: Ethereum address of the user
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: reserve
+          in: query
+          description: Ethereum address of the reserve
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: cursor
+          in: query
+          description: Cursor for pagination
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Limit the number of deposits returned (default is 50)
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of user deposits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDepositsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/lendingpool/borrows:
+    get:
+      operationId: getUserBorrows
+      tags:
+        - Borrows
+        - LendingPool
+      summary: Get user borrows of lendingpool
+      description: Get user borrows of lendingpool
+      parameters:
+        - name: user
+          in: query
+          description: Ethereum address of the user
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: reserve
+          in: query
+          description: Ethereum address of the reserve
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: cursor
+          in: query
+          description: Cursor for pagination
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Limit the number of deposits returned (default is 50)
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of user borrows
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBorrowsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/logs/{txHash}:
+    get:
+      operationId: getLogsByTransactionHash
+      tags:
+        - Logs
+      summary: Get raw and decoded logs by transaction hash
+      description: Get raw and decoded logs by transaction hash
+      parameters:
+        - name: txHash
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{64}"
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventDetailsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/prices:
+    get:
+      operationId: listPrices
+      tags:
+        - Prices
+      summary: List prices based on query parameters
+      description: Retrieve a list of price details based on specified query parameters
+      parameters:
+        - in: query
+          name: symbol
+          schema:
+            type: string
+          description: Symbol of the price
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriceListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/vaults/{id}:
+    get:
+      operationId: getVaultById
+      tags:
+        - Vaults
+        - StableCoinSystem
+      summary: Get a vault by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Vault ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/vaults/{id}/events:
+    get:
+      operationId: getVaultEventsById
+      tags:
+        - Vaults
+        - StableCoinSystem
+      summary: Get vault events by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Vault ID
+          schema:
+            type: integer
+        - name: type
+          in: query
+          description: Event type
+          schema:
+            type: string
+            enum:
+              - repay
+              - deposit
+              - withdraw
+              - mint
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VaultEventsResponse"
+
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/vaults:
+    get:
+      operationId: getVaultsByOwner
+      tags:
+        - Vaults
+        - StableCoinSystem
+      summary: Get vaults by owner query
+      parameters:
+        - name: owner
+          in: query
+          required: false
+          description: Ethereum address of the owner
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VaultsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/accounts/{address}:
+    get:
+      operationId: getAccountByAddress
+      tags:
+        - Accounts
+      summary: Get account by address
+      description: Get account by address
+      parameters:
+        - name: address
+          in: path
+          description: Ethereum address of the account
+          required: true
+          schema:
+            type: string
+            format: address
+            example: "0x1234567890123456789012345678901234567890"
+      responses:
+        "200":
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/points/scoreboard:
+    get:
+      operationId: getScoreboard
+      tags:
+        - Points
+      summary: Get scoreboard
+      description: Get scoreboard
+      responses:
+        "200":
+          description: A JSON object with scoreboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scoreboard"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/staking/tx/stake:
+    post:
+      operationId: stakeToStakingContract
+      tags:
+        - Staking
+      summary: Stake to staking contract
+      description: Stake to staking contract
+      requestBody:
+        required: true
+        description: Stake transaction request, if amount is not provided, then the whole wallet balance will be used
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StakingStakeTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StakingStakeTxResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/staking/tx/withdraw:
+    post:
+      operationId: withdrawStakedAsset
+      tags:
+        - Staking
+      summary: Withdraw staked asset
+      description: Withdraw staked asset
+      requestBody:
+        required: true
+        description: Withdraw transaction request, if amount is not provided, then the whole staked amount will be withdrawn
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StakingWithdrawTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StakingWithdrawTxResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/staking/tx/collectreward:
+    post:
+      operationId: collectStakingReward
+      tags:
+        - Staking
+      summary: Collect staking reward
+      description: Collect staking reward
+      requestBody:
+        required: true
+        description: Collect reward transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StakingCollectRewardTxRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StakingCollectRewardTxResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/staking/stats:
+    get:
+      operationId: getUserStakingStats
+      tags:
+        - Staking
+      summary: Get user staking stats
+      description: Get user staking stats
+      parameters:
+        - name: user
+          in: query
+          description: Ethereum address of the user
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: address
+          in: query
+          description: Ethereum address of the staking contract
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: active
+          in: query
+          description: Filter by active stakes
+          required: false
+          schema:
+            type: boolean
+        - name: cursor
+          in: query
+          description: Cursor for pagination
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Limit the number of stakes returned (default is 50)
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of stakes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStakesResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/staking/plans:
+    get:
+      operationId: getStakingPlans
+      tags:
+        - Staking
+      summary: Get staking plans
+      description: Get staking plans
+      responses:
+        "200":
+          description: List of stakes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StakePlansResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    ScoreboardItem:
+      type: object
+      required:
+        - address
+        - points
+      properties:
+        address:
+          type: string
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        points:
+          type: integer
+          format: int64
+          example: 100
+    Scoreboard:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScoreboardItem"
+
+    ChainActivity:
+      type: object
+      required:
+        - steps
+        - numberOfSteps
+        - stepNumber
+      properties:
+        stepNumber:
+          type: integer
+        numberOfSteps:
+          type: integer
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChainActivityStep"
+    ChainActivityStep:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - PreparedTx
+            - EIP712SignRequest
+            - PersonalSignRequest
+        data:
+          $ref: "#/components/schemas/ChainActivityStepData"
+
+    ChainActivityStepData:
+      oneOf:
+        - $ref: "#/components/schemas/PreparedTx"
+        - $ref: "#/components/schemas/EIP712SignRequest"
+        - $ref: "#/components/schemas/PersonalSignRequest"
+
+    PersonalSignRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: The message that needs to be signed
+          example: "Hello, World!"
+
+    EIP712SignRequest:
+      type: object
+      required:
+        - typedData
+        - hash
+        - name
+      properties:
+        name:
+          type: string
+          description: The name of the EIP712 signature
+          example: "Permit2"
+        typedData:
+          $ref: "#/components/schemas/TypedData"
+        hash:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{64}$
+          description: The hash of the EIP712 signature that needs to be signed
+    PreparedTx:
+      type: object
+      required:
+        - type
+        - label
+        - gasFeeEstimate
+        - gasUseEstimate
+        - methodParameters
+      properties:
+        type:
+          type: string
+        label:
+          type: object
+          additionalProperties:
+            type: string
+            format: string
+        gasUseEstimate:
+          type: integer
+        gasFeeEstimate:
+          $ref: "#/components/schemas/Currency"
+        methodParameters:
+          $ref: "#/components/schemas/MethodParameters"
+
+    LendingpoolDepositTxRequest:
+      type: object
+      required:
+        - user
+        - symbol
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        symbol:
+          type: string
+          example: "ETH"
+        amount:
+          type: string
+          description: The amount to deposit in native token units, if not provided, it will be calculated based on the token balance
+          example: "10000000000000000000"
+
+    LendingpoolTxResponse:
+      type: object
+      properties:
+        nextHealthFactor:
+          type: string
+          description: The health factor after the deposit
+          example: "1.2"
+
+    LendingpoolDepositTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+        response:
+          $ref: "#/components/schemas/LendingpoolTxResponse"
+
+    LendingpoolWithdrawTxRequest:
+      type: object
+      required:
+        - user
+        - symbol
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        symbol:
+          type: string
+        amount:
+          type: string
+          description: The amount to withdraw in native token units, if not provided, it will be calculated based on the deposit balance
+          example: "10000000000000000000"
+    LendingpoolWithdrawTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+        response:
+          $ref: "#/components/schemas/LendingpoolTxResponse"
+
+    LendingpoolBorrowTxRequest:
+      type: object
+      required:
+        - user
+        - symbol
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        symbol:
+          type: string
+        amount:
+          type: string
+          description: The amount to borrow in native token units
+          example: "10000000000000000000"
+
+    LendingpoolBorrowTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+        response:
+          $ref: "#/components/schemas/LendingpoolTxResponse"
+
+    LendingpoolRepayTxRequest:
+      type: object
+      required:
+        - user
+        - symbol
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        symbol:
+          type: string
+        amount:
+          type: string
+          description: The amount to repay in native token units, if not provided, it will be calculated based on the borrow balance
+          example: "10000000000000000000"
+    LendingpoolRepayTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+        response:
+          $ref: "#/components/schemas/LendingpoolTxResponse"
+
+    LendingpoolUseAssetAsCollateralTxRequest:
+      type: object
+      required:
+        - user
+        - symbol
+        - enabled
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        symbol:
+          type: string
+          description: Symbol of asset
+        enabled:
+          type: boolean
+          description: Enable or disable the asset as collateral
+    LendingpoolUseAssetAsCollateralTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+        response:
+          $ref: "#/components/schemas/LendingpoolTxResponse"
+
+    StablecoinSystemCreateVaultTxRequest:
+      type: object
+      required:
+        - ilkName
+        - user
+        - mintAmount
+      properties:
+        ilkName:
+          type: string
+          description: The name of the ilk
+          example: "ETH-A"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        collateralAmount:
+          type: string
+          description: The amount of collateral to deposit in native token units
+          example: "10000000000000000000"
+        mintAmount:
+          type: string
+          description: The amount of stablecoin to mint in native token units
+          example: "10000000000000000000"
+    StablecoinSystemDepositCollateralTxRequest:
+      type: object
+      required:
+        - user
+        - vaultId
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        vaultId:
+          type: integer
+          description: The ID of the vault
+          example: 1
+        amount:
+          type: string
+          description: The amount of collateral to deposit in native token units, if not provided, it will be calculated based on the wallet balance
+          example: "10000000000000000000"
+    StablecoinSystemWithdrawCollateralTxRequest:
+      type: object
+      required:
+        - user
+        - vaultId
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        vaultId:
+          type: integer
+          description: The ID of the vault
+          example: 1
+        amount:
+          type: string
+          description: The amount of collateral to withdraw in native token units, if not provided, it will be calculated based on the withdrawable balance
+          example: "10000000000000000000"
+    StablecoinSystemMintZarTxRequest:
+      type: object
+      required:
+        - user
+        - vaultId
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        vaultId:
+          type: integer
+          description: The ID of the vault
+          example: 1
+        amount:
+          type: string
+          description: The amount of stablecoin to mint in native token units, if not provided, it will be calculated based on the available to mint amount
+          example: "10000000000000000000"
+    StablecoinSystemRepayZarTxRequest:
+      type: object
+      required:
+        - user
+        - vaultId
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        vaultId:
+          type: integer
+          description: The ID of the vault
+          example: 1
+        amount:
+          type: string
+          description: The amount of stablecoin to repay in native token units, if not provided, it will be calculated based on the borrow balance
+          example: "10000000000000000000"
+    StablecoinSystemBarkTxRequest:
+      type: object
+      required:
+        - user
+        - vaultId
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user who is liquidating the vault and receiving incentives.
+          format: address
+          pattern: "0x[a-fA-F0-9]{40}"
+          example: "0x1234567890123456789012345678901234567890"
+        vaultId:
+          type: integer
+          description: The ID of the vault
+          example: 1
+    StablecoinSystemZarjoinTxRequest:
+      type: object
+      required:
+        - user
+        - amount
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user intends to join zar tokens into the Vat contract.
+          format: address
+          pattern: "0x[a-fA-F0-9]{40}"
+          example: "0x1234567890123456789012345678901234567890"
+        amount:
+          type: string
+          description: The amount of ZAR to approve and join into Vat contract
+          example: "10000000000000000000"
+    StablecoinSystemZarexitTxRequest:
+      type: object
+      required:
+        - user
+        - amount
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user intends to exit zar tokens from the Vat contract and receive them..
+          format: address
+          pattern: "0x[a-fA-F0-9]{40}"
+          example: "0x1234567890123456789012345678901234567890"
+        amount:
+          type: string
+          description: The amount of Zar token to exit from Vat contract
+          example: "10000000000000000000"
+    StablecoinSystemGemexitTxRequest:
+      type: object
+      required:
+        - user
+        - amount
+        - ilk
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user intends to exit gem tokens from the Vat contract and receive them..
+          format: address
+          pattern: "0x[a-fA-F0-9]{40}"
+          example: "0x1234567890123456789012345678901234567890"
+        amount:
+          type: string
+          description: The amount of Gem token to exit from Vat contract
+          example: "10000000000000000000"
+        ilk:
+          type: string
+          description: Name of the ILK
+          example: "ETHA"
+    StablecoinSystemRedoTxRequest:
+      type: object
+      required:
+        - user
+        - auctionId
+        - ilk
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user resetting the auction and receiving incentives.
+          format: address
+          pattern: "0x[a-fA-F0-9]{40}"
+          example: "0x1234567890123456789012345678901234567890"
+        auctionId:
+          type: integer
+          description: The ID of the auction
+          example: 1
+        ilk:
+          type: string
+          description: Name of the ILK
+          example: "ETHA"
+    StablecoinSystemTakeTxRequest:
+      type: object
+      required:
+        - user
+        - auctionId
+        - ilk
+        - collateralAmountUpperLimit
+        - maxAcceptablePrice
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user taking the auction.
+          format: address
+          pattern: "0x[a-fA-F0-9]{40}"
+          example: "0x1234567890123456789012345678901234567890"
+        auctionId:
+          type: integer
+          description: The ID of the auction
+          example: 1
+        ilk:
+          type: string
+          description: Name of the ILK
+          example: "ETHA"
+        collateralAmountUpperLimit:
+          type: string
+          description: upper limit on the amount of collateral to buy [wad]
+          example: "10000000000000000000"
+        maxAcceptablePrice:
+          type: string
+          description: Maximum acceptable price (ZAR / collateral) [ray]
+          example: "10000000000000000000"
+
+    QuoteResponse:
+      type: object
+      required:
+        - type
+        - tradeType
+        - time
+        - amount
+        - quote
+        - quoteId
+        - gasPrice
+        - gasUseEstimate
+        - gasFeeEstimate
+        - routeString
+        - route
+      properties:
+        type:
+          $ref: "#/components/schemas/OrderType"
+        tradeType:
+          $ref: "#/components/schemas/TradeType"
+        time:
+          $ref: "#/components/schemas/Timestamp"
+        amount:
+          $ref: "#/components/schemas/Currency"
+        quote:
+          $ref: "#/components/schemas/Currency"
+        quoteId:
+          type: string
+        gasPrice:
+          $ref: "#/components/schemas/Currency"
+        gasUseEstimate:
+          type: integer
+        gasFeeEstimate:
+          $ref: "#/components/schemas/Currency"
+        routeString:
+          type: string
+          example: A -- [0x0000000000000000000000000000000000000012] --> B -- [0x0000000000000000000000000000000000000023] --> C
+        methodParameters:
+          $ref: "#/components/schemas/MethodParameters"
+        route:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteItem"
+        orderInfo:
+          $ref: "#/components/schemas/OrderInfo"
+        encodedOrder:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]*$
+        orderHash:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{64}$
+        permitData:
+          $ref: "#/components/schemas/TypedData"
+
+    RouteItem:
+      allOf:
+        - $ref: "#/components/schemas/V3PoolInRoute"
+
+    V3PoolInRoute:
+      type: object
+      required:
+        - address
+        - tokenIn
+        - tokenOut
+        - fee
+      properties:
+        address:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        tokenIn:
+          $ref: "#/components/schemas/Token"
+        tokenOut:
+          $ref: "#/components/schemas/Token"
+        fee:
+          type: string
+
+    MethodParameters:
+      type: object
+      required:
+        - to
+        - calldata
+        - value
+      properties:
+        to:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        calldata:
+          type: string
+        value:
+          type: string
+    TradeType:
+      type: string
+      enum:
+        - ExactInput
+        - ExactOutput
+    QuoteRequest:
+      type: object
+      required:
+        - tradeType
+        - inputToken
+        - outputToken
+        - recipient
+        - amount
+      properties:
+        requestId:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+        type:
+          $ref: "#/components/schemas/OrderType"
+        tradeType:
+          $ref: "#/components/schemas/TradeType"
+        inputToken:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+          example: "0x1234567890123456789012345678901234567890"
+        outputToken:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+          example: "0x1234567890123456789012345678901234567890"
+        amount:
+          type: string
+          example: "123.456789"
+        recipient:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        options:
+          $ref: "#/components/schemas/QuoteRequestOptions"
+    QuoteRequestOptions:
+      type: object
+      properties:
+        dryRun:
+          type: boolean
+          default: false
+        slippageTolerance:
+          type: string
+          default: "0.005"
+        useSyntheticQuotes:
+          type: boolean
+          default: false
+        permitSignature:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{130}$
+        permitNonce:
+          type: string
+        permitExpiration:
+          type: integer
+        permitAmount:
+          type: string
+        permitSigDeadline:
+          type: integer
+        quoteId:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+        encodedOrder:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]*$
+
+    OrderInfo:
+      type: object
+      required:
+        - chainId
+        - permit2Address
+        - reactor
+        - swapper
+        - nonce
+        - deadline
+        - additionalValidationContract
+        - additionalValidationData
+        - decayStartTime
+        - decayEndTime
+        - exclusiveFiller
+        - exclusivityOverrideBps
+        - input
+        - outputs
+      properties:
+        chainId:
+          type: integer
+        permit2Address:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        reactor:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        swapper:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        nonce:
+          type: string
+        deadline:
+          $ref: "#/components/schemas/Timestamp"
+        additionalValidationContract:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        additionalValidationData:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]*$
+        decayStartTime:
+          $ref: "#/components/schemas/Timestamp"
+        decayEndTime:
+          $ref: "#/components/schemas/Timestamp"
+        exclusiveFiller:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        exclusivityOverrideBps:
+          type: integer
+        input:
+          $ref: "#/components/schemas/DutchAmount"
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/DutchAmount"
+
+    UpdateOrderRequest:
+      required:
+        - orderHash
+      properties:
+        orderHash:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{64}$
+
+    OrderResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+
+    Order:
+      required:
+        - outputs
+        - encodedOrder
+        - signature
+        - input
+        - orderStatus
+        - chainId
+        - orderHash
+        - orderType
+      properties:
+        quoteId:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RawDutchAmount"
+        encodedOrder:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]*$
+        signature:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{130}$
+        input:
+          $ref: "#/components/schemas/RawDutchAmount"
+        orderStatus:
+          type: string
+          enum:
+            - open
+            - expired
+            - error
+            - cancelled
+            - filled
+            - insufficient-funds
+        chainId:
+          type: integer
+          format: int64
+        orderHash:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{64}$
+        orderType:
+          type: string
+          enum:
+            - dutch
+            - limit
+
+    RawDutchAmount:
+      required:
+        - token
+        - startAmount
+        - endAmount
+      properties:
+        token:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+        startAmount:
+          type: string
+        endAmount:
+          type: string
+        recipient:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+
+    DutchAmount:
+      required:
+        - token
+        - startAmount
+        - endAmount
+      properties:
+        token:
+          $ref: "#/components/schemas/Token"
+        startAmount:
+          $ref: "#/components/schemas/Currency"
+        endAmount:
+          $ref: "#/components/schemas/Currency"
+        recipient:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+
+    OrderType:
+      type: string
+      enum:
+        - Classic
+        - DutchLimit
+
+    TypedData:
+      type: object
+      properties:
+        types:
+          $ref: "#/components/schemas/Types"
+        primaryType:
+          type: string
+        domain:
+          $ref: "#/components/schemas/TypedDataDomain"
+        message:
+          type: object
+          additionalProperties: true # As TypedDataMessage is a map[string]interface{}
+      required:
+        - types
+        - primaryType
+        - domain
+        - message
+    Types:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          $ref: "#/components/schemas/Type"
+      description: "A map where each key is a string and each value is a list of Type"
+    Type:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+      required:
+        - name
+        - type
+    TypedDataDomain:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        chainId:
+          type: string
+        verifyingContract:
+          type: string
+        salt:
+          type: string
+      required:
+        - name
+        - chainId
+        - verifyingContract
+    PermitSingle:
+      type: object
+      required:
+        - typedData
+        - hash
+      properties:
+        typedData:
+          $ref: "#/components/schemas/TypedData"
+        hash:
+          type: string
+          pattern: ^(0x)?[0-9a-fA-F]{64}$
+          description: The hash of the permit that needs to be signed
+
+    Account:
+      type: object
+      required:
+        - address
+        - netWorth
+        - totalDebt
+        - totalDeposits
+        - lendingpoolSummary
+        - stabelcoinSystemSummary
+        - stakingSummary
+        - walletBalance
+        - points
+      properties:
+        points:
+          type: integer
+          format: int64
+          description: The number of points the account has.
+          example: 100
+        address:
+          type: string
+          description: Ethereum address of the account
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        walletBalance:
+          $ref: "#/components/schemas/WalletBalance"
+        netWorth:
+          $ref: "#/components/schemas/Currency"
+        totalDebt:
+          $ref: "#/components/schemas/Currency"
+        totalDeposits:
+          $ref: "#/components/schemas/Currency"
+        lendingpoolSummary:
+          $ref: "#/components/schemas/AccountLendingpoolSummary"
+        stabelcoinSystemSummary:
+          $ref: "#/components/schemas/AccountStablecoinSystemSummary"
+        stakingSummary:
+          $ref: "#/components/schemas/AccountStakingSummary"
+
+    WalletBalance:
+      required:
+        - balances
+      properties:
+        balances:
+          type: array
+          items:
+            $ref: "#/components/schemas/Balance"
+    Balance:
+      type: object
+      required:
+        - token
+        - balance
+      properties:
+        token:
+          $ref: "#/components/schemas/Token"
+        balance:
+          $ref: "#/components/schemas/Currency"
+
+    AccountLendingpoolSummary:
+      required:
+        - totalDebt
+        - totalDeposits
+        - totalCollateral
+        - healthFactor
+        - netApy
+        - totalSupplyApy
+        - totalBorrowApy
+        - availableToBorrow
+        - borrowPowerUsed
+        - currentLiquidationThreshold
+        - loanToValue
+      properties:
+        totalDebt:
+          $ref: "#/components/schemas/Currency"
+        totalDeposits:
+          $ref: "#/components/schemas/Currency"
+        totalCollateral:
+          $ref: "#/components/schemas/Currency"
+        healthFactor:
+          type: string
+          description: Health factor in lending pool
+          example: "1.5"
+        netApy:
+          type: string
+          description: Net annual percentage yield in lending pool
+          example: "0.12"
+        totalSupplyApy:
+          type: string
+          description: Total supply rate in lending pool for account
+          example: "0.12"
+        totalBorrowApy:
+          type: string
+          description: Total borrow rate in lending pool for account
+          example: "0.12"
+        availableToBorrow:
+          $ref: "#/components/schemas/Currency"
+        borrowPowerUsed:
+          type: string
+          description: Borrow power used in lending pool
+          example: "0.30"
+        currentLiquidationThreshold:
+          type: string
+          description: Current liquidation threshold in lending pool
+          example: "0.30"
+        loanToValue:
+          type: string
+          description: Loan to value in lending pool
+          example: "0.30"
+    AccountStablecoinSystemSummary:
+      required:
+        - totalDebt
+        - totalDeposits
+        - netApy
+      properties:
+        totalDebt:
+          $ref: "#/components/schemas/Currency"
+        totalDeposits:
+          $ref: "#/components/schemas/Currency"
+        netApy:
+          type: string
+          description: Net annual percentage yield in stablecoin system
+          example: "0.30"
+    AccountStakingSummary:
+      required:
+        - totalStake
+        - unclaimedReward
+        - netApy
+      properties:
+        totalStake:
+          $ref: "#/components/schemas/Currency"
+        unclaimedReward:
+          $ref: "#/components/schemas/Currency"
+        netApy:
+          type: string
+          description: Net annual percentage yield in staking contract
+          example: "0.30"
+
+    VaultsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vault"
+
+    Vault:
+      type: object
+      required:
+        - id
+        - owner
+        - urn
+        - liquidationPrice
+        - collateralLocked
+        - collateralizationRatio
+        - loanToValue
+        - debt
+        - availableToWithdraw
+        - availableToMint
+        - ilk
+      properties:
+        id:
+          type: integer
+          description: Identifier for the vault.
+          example: 1
+        owner:
+          type: string
+          description: Ethereum address of the vault owner.
+          format: string
+          example: "0x1234567890123456789012345678901234567890"
+        urn:
+          type: string
+          description: Ethereum address of the vault urn.
+          format: string
+          example: "0x1234567890123456789012345678901234567890"
+        liquidationPrice:
+          $ref: "#/components/schemas/Currency"
+        collateralLocked:
+          $ref: "#/components/schemas/Currency"
+        collateralizationRatio:
+          type: string
+          description: The collateralization ratio of the vault.
+          example: "1.5"
+        loanToValue:
+          type: string
+          description: The loan to value of the vault.
+          example: "0.5"
+        debt:
+          $ref: "#/components/schemas/Currency"
+        availableToWithdraw:
+          $ref: "#/components/schemas/Currency"
+        availableToMint:
+          $ref: "#/components/schemas/Currency"
+        ilk:
+          $ref: "#/components/schemas/Ilk"
+
+    ExtendedEvent:
+      type: object
+      required:
+        - domain
+        - id
+        - name
+        - raw
+        - type
+        - payload
+      properties:
+        domain:
+          $ref: "#/components/schemas/EventDomain"
+        id:
+          type: integer
+          description: Identifier for the event.
+        name:
+          $ref: "#/components/schemas/EventName"
+        raw:
+          $ref: "#/components/schemas/Log"
+        type:
+          $ref: "#/components/schemas/EventType"
+        payload:
+          type: object
+          description: The payload of the event. The payload is a JSON-marshalled
+          additionalProperties: true
+
+    EventType:
+      type: string
+      description: The type of the event. who has triggered the event.
+      enum:
+        - executive
+        - oracle
+        - user
+      example: executive
+    EventDomain:
+      type: string
+      description: The domain of the event.
+      enum:
+        - stableCoinSystem
+        - lendingpool
+        - chainlink
+        - uniswapV3
+      example: stableCoinSystem
+    BasicEvent:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - domain
+        - raw
+      properties:
+        id:
+          type: integer
+          description: Identifier for the event.
+          example: 1
+        name:
+          $ref: "#/components/schemas/EventName"
+        type:
+          $ref: "#/components/schemas/EventType"
+        domain:
+          $ref: "#/components/schemas/EventDomain"
+        raw:
+          $ref: "#/components/schemas/Log"
+    EventName:
+      type: string
+      enum:
+        - VaultsRepay
+        - VaultsWithdraw
+        - VaultsDeposit
+        - VaultsMint
+        - VaultsKick
+        - VaultsTake
+        - VaultsRedo
+        - VaultsYank
+        - LendingpoolWithdraw
+        - LendingpoolRepay
+        - LendingpoolLiquidationCall
+        - LendingpoolBorrow
+        - File
+        - Permission
+        - Median
+        - Unknown
+      example: "VaultRepay"
+
+    VaultEventsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExtendedEvent"
+
+    VaultEventItem:
+      allOf:
+        - $ref: "#/components/schemas/BasicEvent"
+        - $ref: "#/components/schemas/VaultEventExtension"
+
+    VaultEventExtension:
+      type: object
+      properties:
+        payload:
+          $ref: "#/components/schemas/VaultEvent"
+
+    VaultEvent:
+      type: object
+      required:
+        - deltaCollateral
+        - deltaDebt
+        - ilk
+      properties:
+        deltaCollateral:
+          $ref: "#/components/schemas/Currency"
+        deltaDebt:
+          $ref: "#/components/schemas/Currency"
+        ilk:
+          $ref: "#/components/schemas/Ilk"
+
+    PriceListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Price"
+
+    Price:
+      type: object
+      required:
+        - symbol
+        - value
+        - timestamp
+      properties:
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        value:
+          $ref: "#/components/schemas/Currency"
+        timestamp:
+          $ref: "#/components/schemas/Timestamp"
+
+    FormattedReserveData:
+      type: object
+      required:
+        - id
+        - underlyingAsset
+        - zTokenAddress
+        - variableDebtTokenAddress
+        - borrowingEnabled
+        - isActive
+        - isFrozen
+        - usageAsCollateralEnabled
+        - reserveFactor
+        - baseLTVasCollateral
+        - reserveLiquidationThreshold
+        - reserveLiquidationBonus
+        - utilizationRate
+        - totalDebt
+        - totalLiquidity
+        - availableLiquidity
+        - supplyAPY
+        - supplyAPR
+        - variableBorrowAPY
+        - variableBorrowAPR
+        - price
+      properties:
+        id:
+          type: string
+          description: Identifier for the reserve data.
+          example: "0x1234567890123456789012345678901234567890:0x1234567890123456789012345678901234567890"
+        underlyingAsset:
+          $ref: "#/components/schemas/Token"
+        zTokenAddress:
+          type: string
+          description: Address of the associated zToken contract in hexadecimal format.
+          example: "0x1234567890123456789012345678901234567890"
+        variableDebtTokenAddress:
+          type: string
+          description: Address of the associated variable debt token contract in hexadecimal format.
+          example: "0x1234567890123456789012345678901234567890"
+        borrowingEnabled:
+          type: boolean
+          example: true
+        isActive:
+          type: boolean
+          example: true
+        isFrozen:
+          type: boolean
+          example: false
+        usageAsCollateralEnabled:
+          type: boolean
+          example: true
+        reserveFactor:
+          type: string
+          example: "0.1"
+        baseLTVasCollateral:
+          type: string
+          example: "0.5"
+        reserveLiquidationThreshold:
+          type: string
+          example: "0.6"
+        reserveLiquidationBonus:
+          type: string
+          example: "0.1"
+        utilizationRate:
+          type: string
+          example: "0.5"
+        totalDebt:
+          $ref: "#/components/schemas/Currency"
+        totalLiquidity:
+          $ref: "#/components/schemas/Currency"
+        availableLiquidity:
+          $ref: "#/components/schemas/Currency"
+        supplyAPY:
+          type: string
+          example: "0.1"
+        supplyAPR:
+          type: string
+          example: "0.1"
+        variableBorrowAPY:
+          type: string
+          example: "0.1"
+        variableBorrowAPR:
+          type: string
+          example: "0.1"
+        price:
+          $ref: "#/components/schemas/Currency"
+
+    IlksResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ilk"
+
+    Ilk:
+      type: object
+      required:
+        - name
+        - symbol
+        - minimumCollateralizationRatio
+        - maximumLoanToValue
+        - liquidationPenalty
+        - debtCeiling
+        - debt
+        - annualStabilityFee
+        - dustLimit
+        - price
+        - nextPrice
+        - join
+        - median
+        - gem
+        - clipper
+        - pip
+        - hole
+        - dirt
+        - availableToBorrow
+      properties:
+        name:
+          type: string
+          description: Name of the ILK
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        minimumCollateralizationRatio:
+          type: string
+          format: decimal
+          description: Minimum Collateralization Ratio
+        maximumLoanToValue:
+          type: string
+          format: decimal
+          description: Maximum Loan To Value
+        liquidationPenalty:
+          type: string
+          format: decimal
+          description: Liquidation Penalty
+        debtCeiling:
+          $ref: "#/components/schemas/Currency"
+        debt:
+          $ref: "#/components/schemas/Currency"
+        annualStabilityFee:
+          type: string
+          format: decimal
+          description: Annual Stability Fee
+        dustLimit:
+          $ref: "#/components/schemas/Currency"
+        price:
+          $ref: "#/components/schemas/Currency"
+        nextPrice:
+          $ref: "#/components/schemas/Currency"
+        join:
+          type: string
+          format: address
+          description: Join Address
+        median:
+          type: string
+          format: address
+          description: Median Address
+        gem:
+          type: string
+          format: address
+          description: Gem Address
+        clipper:
+          type: string
+          format: address
+          description: Clipper Address
+        pip:
+          type: string
+          format: address
+          description: Pip Address
+        hole:
+          $ref: "#/components/schemas/Currency"
+        dirt:
+          $ref: "#/components/schemas/Currency"
+        availableToBorrow:
+          $ref: "#/components/schemas/Currency"
+
+    Symbol:
+      type: string
+      description: Symbol representation
+      enum:
+        - USD
+        - DAI
+        - USDT
+        - USDC
+        - WBTC
+        - ETH
+        - WETH
+        - ZAR
+        - TMN
+
+    EventDetailsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Log"
+
+    Log:
+      type: object
+      required:
+        [
+          timestamp,
+          address,
+          blockNumber,
+          txHash,
+          blockHash,
+          index,
+          topics,
+          data,
+          name,
+          contract,
+        ]
+      properties:
+        name:
+          type: string
+          description: The name of the log
+        contract:
+          type: string
+          description: The contract address
+        timestamp:
+          $ref: "#/components/schemas/Timestamp"
+        address:
+          type: string
+          description: The Ethereum address
+        blockNumber:
+          type: integer
+          format: uint64
+          description: The block number
+        txHash:
+          type: string
+          description: The transaction hash
+        blockHash:
+          type: string
+          description: The block hash
+        index:
+          type: integer
+          format: uint
+          description: The index
+        topics:
+          type: array
+          items:
+            type: string
+            format: string
+            description: The topics of the log
+            example: "0x1234567890abcdef1234567abcdef"
+        data:
+          type: string
+          format: string
+          description: The data of the log
+          example: "0x1234567890abcdef1234567abcdef"
+        decoded:
+          type: object
+          description: The decoded log, if available
+          additionalProperties:
+            type: string
+            format: string
+            example: "0x1234567890abcdef1234567abcdef"
+
+    UserDepositsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/LendingpoolDeposit"
+
+    LendingpoolDeposit:
+      type: object
+      required:
+        [
+          user,
+          underlyingAsset,
+          amount,
+          usageAsCollateralEnabledOnUser,
+          supplyAPY,
+        ]
+      properties:
+        user:
+          type: string
+          format: string
+          description: The Ethereum address of the user.
+        underlyingAsset:
+          $ref: "#/components/schemas/Token"
+        amount:
+          $ref: "#/components/schemas/Currency"
+        usageAsCollateralEnabledOnUser:
+          type: boolean
+          description: Whether the user has enabled the asset as collateral.
+        supplyAPY:
+          type: string
+          format: string
+          description: The supply APY.
+
+    UserBorrowsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/LendingpoolBorrow"
+
+    LendingpoolBorrow:
+      type: object
+      required: [user, underlyingAsset, amount, borrowRate, maxBorrowAmount]
+      properties:
+        user:
+          type: string
+          format: string
+          description: The Ethereum address of the user.
+        underlyingAsset:
+          $ref: "#/components/schemas/Token"
+        amount:
+          $ref: "#/components/schemas/Currency"
+        borrowRate:
+          type: string
+          format: string
+          description: The borrow rate.
+        maxBorrowAmount:
+          $ref: "#/components/schemas/Currency"
+
+    Currency:
+      type: object
+      additionalProperties:
+        type: string
+        format: string
+      example:
+        USD: "1.23"
+        TMN: "45.67"
+        ZAR: "89.01"
+        ETH: "0.02"
+    Error:
+      type: object
+      required:
+        - msg
+        - reasons
+      properties:
+        msg:
+          type: string
+          description: Error message
+          example: "Bad request"
+        reasons:
+          type: array
+          items:
+            type: string
+            description: Error reason
+            example: "Invalid address"
+
+    UserError:
+      type: object
+      required:
+        - messages
+        - reasons
+      properties:
+        messages:
+          type: object
+          description: Localized error messages
+          additionalProperties:
+            $ref: "#/components/schemas/ErrorMessage"
+        reasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorReason"
+
+    ErrorMessage:
+      type: object
+      required:
+        - userMessage
+        - solutions
+      properties:
+        userMessage:
+          type: string
+          description: User-friendly error message
+          example: "Invalid request. Please check the provided address."
+        solutions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorSolution"
+
+    ErrorSolution:
+      type: string
+      description: Possible solutions for the error
+      example: "Ensure the address follows the correct format."
+
+    ErrorReason:
+      type: string
+      description: Error reasons
+      example: "Invalid address"
+
+    TimeRange:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+
+    Timestamp:
+      type: object
+      required: [jalaali, gregorian]
+      properties:
+        jalaali:
+          type: string
+          description: Jalaali date
+          example: "1399-01-01T00:00:00Z"
+        gregorian:
+          type: string
+          description: Gregorian date
+          example: "2020-01-01T00:00:00Z"
+
+    Token:
+      type: object
+      required:
+        - name
+        - symbol
+        - decimals
+        - address
+        - logoUri
+        - chainId
+        - persianName
+      properties:
+        name:
+          type: string
+          description: The name of the token.
+          example: "Zar Stablecoin"
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        decimals:
+          type: integer
+          format: int64
+          description: The number of decimals for the token.
+          example: 18
+        address:
+          type: string
+          format: address
+          description: The Ethereum address of the token.
+          example: "0x1234567890123456789012345678901234567890"
+        logoUri:
+          type: string
+          description: The URI of the token's logo.
+          example: "/assets/logos/dai.svg"
+        chainId:
+          type: integer
+          format: int64
+          description: The chain ID of the token.
+          example: 1
+        persianName:
+          type: string
+          description: The Persian name of the token.
+          example: "زر"
+
+    AddressResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Address"
+
+    Address:
+      type: object
+      required:
+        - label
+        - address
+      properties:
+        label:
+          type: string
+          description: The label of the address.
+          example: "vat"
+        address:
+          type: string
+          description: The Ethereum address.
+          example: "0x1234567890123456789012345678901234567890"
+
+    Stats:
+      type: object
+      required:
+        - stablecoinSystem
+        - lendingpool
+      properties:
+        stablecoinSystem:
+          $ref: "#/components/schemas/StablecoinSystemStats"
+        lendingpool:
+          $ref: "#/components/schemas/LendingpoolStats"
+
+    LendingpoolStats:
+      type: object
+      required:
+        - totalAvailable
+        - totalBorrows
+        - totalMarketSize
+      properties:
+        totalAvailable:
+          allOf:
+            - $ref: "#/components/schemas/Currency"
+            - description: Total available
+        totalBorrows:
+          allOf:
+            - $ref: "#/components/schemas/Currency"
+            - description: Total borrows
+        totalMarketSize:
+          allOf:
+            - $ref: "#/components/schemas/Currency"
+            - description: Total market size
+
+    StablecoinSystemStats:
+      type: object
+      required:
+        - systemSurplus
+        - systemDebt
+        - systemDebtCeiling
+        - systemSurplusBuffer
+        - systemBadDebt
+        - systemSurplusLotSize
+      properties:
+        systemSurplus:
+          $ref: "#/components/schemas/SystemSurplus"
+        systemDebt:
+          $ref: "#/components/schemas/SystemDebt"
+        systemDebtCeiling:
+          $ref: "#/components/schemas/SystemDebtCeiling"
+        systemSurplusBuffer:
+          $ref: "#/components/schemas/SystemSurplusBuffer"
+        systemBadDebt:
+          $ref: "#/components/schemas/SystemBadDebt"
+        systemSurplusLotSize:
+          $ref: "#/components/schemas/SystemSurplusLotSize"
+
+    SystemSurplus:
+      description: System surplus
+      allOf:
+        - $ref: "#/components/schemas/Currency"
+
+    SystemDebt:
+      description: System debt
+      allOf:
+        - $ref: "#/components/schemas/Currency"
+
+    SystemDebtCeiling:
+      description: System debt ceiling
+      allOf:
+        - $ref: "#/components/schemas/Currency"
+
+    SystemSurplusBuffer:
+      description: System surplus buffer
+      allOf:
+        - $ref: "#/components/schemas/Currency"
+
+    SystemBadDebt:
+      description: System bad debt
+      allOf:
+        - $ref: "#/components/schemas/Currency"
+
+    SystemSurplusLotSize:
+      description: System surplus lot size
+      allOf:
+        - $ref: "#/components/schemas/Currency"
+
+    StakingStakeTxRequest:
+      type: object
+      required:
+        - user
+        - contractAddress
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        contractAddress:
+          type: string
+          description: Ethereum address of the staking contract
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        amount:
+          type: string
+          description: The amount of asset to stake in native token units
+          example: "1000000000000000000"
+
+    StakingStakeTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+
+    StakingWithdrawTxRequest:
+      type: object
+      required:
+        - user
+        - contractAddress
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        contractAddress:
+          type: string
+          description: Ethereum address of the staking contract
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        amount:
+          type: string
+          description: The amount of asset to withdraw in native token units
+          example: "1000000000000000000"
+
+    StakingWithdrawTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+
+    StakingCollectRewardTxRequest:
+      type: object
+      required:
+        - user
+        - contractAddress
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        contractAddress:
+          type: string
+          description: Ethereum address of the staking contract
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+
+    StakingCollectRewardTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+
+    UserStakesResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserStake"
+
+    UserStake:
+      type: object
+      required:
+        - user
+        - balance
+        - unclaimedReward
+        - contractAddress
+        - planName
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        balance:
+          $ref: "#/components/schemas/StakeBalance"
+        unclaimedReward:
+          $ref: "#/components/schemas/UnclaimedReward"
+        contractAddress:
+          type: string
+          description: Ethereum address of the staking contract
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        planName:
+          type: string
+          description: Name of staking plan
+          example: "Zar Staking"
+
+    StakeBalance:
+      description: The amount of asset staked in native token units
+      allOf:
+        - $ref: "#/components/schemas/Currency"
+
+    UnclaimedReward:
+      description: The amount of unclaimed reward in native token units
+      allOf:
+        - $ref: "#/components/schemas/Currency"
+
+    StakePlansResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/StakePlan"
+
+    StakePlan:
+      type: object
+      required:
+        - planName
+        - contractAddress
+        - apy
+        - stakeToken
+        - rewardToken
+        - finishAt
+      properties:
+        planName:
+          type: string
+          description: Name of staking plan
+          example: "Zar Staking"
+        contractAddress:
+          type: string
+          description: Ethereum address of the staking contract
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        apy:
+          type: string
+          description: Annual percentage yield of the staking plan
+          example: "0.12"
+        stakeToken:
+          $ref: "#/components/schemas/Token"
+        rewardToken:
+          $ref: "#/components/schemas/Token"
+        finishAt:
+          $ref: "#/components/schemas/Timestamp"
