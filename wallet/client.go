@@ -29,8 +29,8 @@ const (
 
 // Defines values for LoanCreateRequestIntent.
 const (
-	LoanCreateRequestIntentCreate  LoanCreateRequestIntent = "create"
-	LoanCreateRequestIntentPreview LoanCreateRequestIntent = "preview"
+	LoanCreateRequestIntentCreate  LoanCreateRequestIntent = "Create"
+	LoanCreateRequestIntentPreview LoanCreateRequestIntent = "Preview"
 )
 
 // Defines values for LoanToValueOptions.
@@ -426,7 +426,7 @@ type LoansResponse struct {
 	Debt                   Currency `json:"debt"`
 
 	// Id Identifier for the vault.
-	Id               *string  `json:"id,omitempty"`
+	Id               string   `json:"id"`
 	LiquidationPrice Currency `json:"liquidationPrice"`
 
 	// LoanToValue The loan to value of the vault.
@@ -436,11 +436,9 @@ type LoansResponse struct {
 	ScaledDebt                    Currency          `json:"scaledDebt"`
 	State                         InternationalName `json:"state"`
 	TermsAndConditions            *BulletContent    `json:"termsAndConditions,omitempty"`
+	TimeCreated                   Timestamp         `json:"timeCreated"`
 	UpdatedCollateralTokenBalance *Currency         `json:"updatedCollateralTokenBalance,omitempty"`
 	UpdatedDebtTokenBalance       *Currency         `json:"updatedDebtTokenBalance,omitempty"`
-
-	// UserId Identifier for the user.
-	UserId int64 `json:"userId"`
 }
 
 // LoansResponseList defines model for LoansResponseList.
@@ -503,6 +501,19 @@ type PaymentRequest struct {
 type PhoneOtpSubmitRequest struct {
 	// Code Confirmation code
 	Code int64 `json:"code"`
+}
+
+// Price defines model for Price.
+type Price struct {
+	// Symbol Symbol representation
+	Symbol    Symbol    `json:"symbol"`
+	Timestamp Timestamp `json:"timestamp"`
+	Value     Currency  `json:"value"`
+}
+
+// PriceListResponse defines model for PriceListResponse.
+type PriceListResponse struct {
+	Data []Price `json:"data"`
 }
 
 // ProfileResponse defines model for ProfileResponse.
@@ -896,6 +907,12 @@ type EstimateLoanCollateralParams struct {
 // EstimateLoanCollateralParamsInputType defines parameters for EstimateLoanCollateral.
 type EstimateLoanCollateralParamsInputType string
 
+// ListPricesParams defines parameters for ListPrices.
+type ListPricesParams struct {
+	// Symbol Symbol of the price
+	Symbol *string `form:"symbol,omitempty" json:"symbol,omitempty"`
+}
+
 // GetReferralsParams defines parameters for GetReferrals.
 type GetReferralsParams struct {
 	// Name Referral name
@@ -1123,6 +1140,9 @@ type ClientInterface interface {
 
 	// GetFriendsPoints request
 	GetFriendsPoints(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPrices request
+	ListPrices(ctx context.Context, params *ListPricesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetUserProfile request
 	GetUserProfile(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1548,6 +1568,18 @@ func (c *Client) CreatePayment(ctx context.Context, body CreatePaymentJSONReques
 
 func (c *Client) GetFriendsPoints(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetFriendsPointsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPrices(ctx context.Context, params *ListPricesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPricesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -2842,6 +2874,55 @@ func NewGetFriendsPointsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewListPricesRequest generates requests for ListPrices
+func NewListPricesRequest(server string, params *ListPricesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/prices")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Symbol != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "symbol", runtime.ParamLocationQuery, *params.Symbol); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetUserProfileRequest generates requests for GetUserProfile
 func NewGetUserProfileRequest(server string) (*http.Request, error) {
 	var err error
@@ -3781,6 +3862,9 @@ type ClientWithResponsesInterface interface {
 	// GetFriendsPointsWithResponse request
 	GetFriendsPointsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetFriendsPointsResponse, error)
 
+	// ListPricesWithResponse request
+	ListPricesWithResponse(ctx context.Context, params *ListPricesParams, reqEditors ...RequestEditorFn) (*ListPricesResponse, error)
+
 	// GetUserProfileWithResponse request
 	GetUserProfileWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetUserProfileResponse, error)
 
@@ -4402,6 +4486,30 @@ func (r GetFriendsPointsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetFriendsPointsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPricesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PriceListResponse
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPricesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPricesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5171,6 +5279,15 @@ func (c *ClientWithResponses) GetFriendsPointsWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGetFriendsPointsResponse(rsp)
+}
+
+// ListPricesWithResponse request returning *ListPricesResponse
+func (c *ClientWithResponses) ListPricesWithResponse(ctx context.Context, params *ListPricesParams, reqEditors ...RequestEditorFn) (*ListPricesResponse, error) {
+	rsp, err := c.ListPrices(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPricesResponse(rsp)
 }
 
 // GetUserProfileWithResponse request returning *GetUserProfileResponse
@@ -6408,6 +6525,46 @@ func ParseGetFriendsPointsResponse(rsp *http.Response) (*GetFriendsPointsRespons
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListPricesResponse parses an HTTP response from a ListPricesWithResponse call
+func ParseListPricesResponse(rsp *http.Response) (*ListPricesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPricesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PriceListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error
