@@ -8,7 +8,7 @@ import (
 	"github.com/zarbanio/zarban-go/wallet"
 )
 
-func SignupExample() {
+func LoginExample() {
 	// Create and configure the client
 	client, err := wallet.NewClient("https://testwapi.zarban.io")
 	if err != nil {
@@ -16,18 +16,18 @@ func SignupExample() {
 		return
 	}
 	// Prepare the signup request data
-	signUpRequest := wallet.SignUpRequest{
+	loginRequest := wallet.LoginRequest{
 		Email:    "user@example.com",
-		Password: "yourSecurePassword",
+		Password: "your_secure_password",
 	}
 
-	httpResponse, err := client.SignupWithEmailAndPassword(context.Background(), signUpRequest)
+	httpResponse, err := client.LoginWithEmailAndPassword(context.Background(), loginRequest)
 	if err != nil {
 		log.Fatalf("Error during API call: %v", err)
 		return
 	}
 
-	var successResponse wallet.SimpleResponse
+	var successResponse wallet.JwtResponse
 	err = HandleAPIResponse(httpResponse, &successResponse)
 	if err != nil {
 		if apiErr, ok := err.(*APIError); ok {
@@ -38,5 +38,6 @@ func SignupExample() {
 		return
 	}
 
-	fmt.Printf("Signup successful: %+v\n", successResponse.Messages)
+	fmt.Println("login successful!")
+	fmt.Println("Token: ", successResponse.Token)
 }

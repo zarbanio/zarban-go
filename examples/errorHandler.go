@@ -65,3 +65,40 @@ func HandleAPIResponse[T any](resp *http.Response, successResponse *T) error {
 		Details:    string(bodyBytes),
 	}
 }
+
+// PrettyPrintError formats the APIError nicely
+func PrettyPrintError(err *APIError) string {
+	if userError, ok := err.Details.(wallet.UserError); ok {
+		return formatUserError(err.StatusCode, userError)
+	}
+
+	// Fallback for other error types
+	if genericError, ok := err.Details.(wallet.Error); ok {
+		return fmt.Sprintf("API error (status %d): %s\nDetails: %s\nReasons: %v",
+			err.StatusCode,
+			err.Message,
+			genericError.Msg,
+			genericError.Reasons,
+		)
+	}
+
+	// Fallback for unknown structures
+	details, _ := json.MarshalIndent(err.Details, "", "  ")
+	return fmt.Sprintf("API error (status %d): %s\nDetails: %s",
+		err.StatusCode,
+		err.Message,
+		string(details),
+	)
+}
+
+func formatUserError(statusCode int, userError wallet.UserError) string {
+	result := fmt.Sprintf("API error (status %d): User error\n", statusCode)
+	for lang, detail := range userError.Messages {
+		result += fmt.Sprintf("- [%s] %s\n  Solutions: %v\n",
+			lang,
+			detail.UserMessage,
+			detail.Solutions,
+		)
+	}
+	return result
+}
