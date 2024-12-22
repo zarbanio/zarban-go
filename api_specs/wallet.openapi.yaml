@@ -44,6 +44,8 @@ tags:
     description: Operations related to Transactions
   - name: Redemptions
     description: Operations related to redemptions
+  - name: Prices
+    description: Operations related to prices
 
 paths:
   /healthz:
@@ -60,6 +62,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /prices:
+    get:
+      operationId: listPrices
+      tags:
+        - Prices
+      summary: List prices based on query parameters
+      description: Retrieve a list of price details based on specified query parameters
+      parameters:
+        - in: query
+          name: symbol
+          schema:
+            type: string
+          description: Symbol of the price
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriceListResponse"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /profile:
     get:
@@ -1231,7 +1266,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoansResponseList"
+                $ref: "#/components/schemas/LoansResponseList"    
         "400":
           description: Bad Request
           content:
@@ -1579,7 +1614,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RedemptionResponse"
+                $ref: "#/components/schemas/RedemptionResponse"              
         "400":
           description: Bad Request
           content:
@@ -1717,6 +1752,29 @@ components:
         format: int64
 
   schemas:
+    PriceListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Price"
+    Price:
+      type: object
+      required:
+        - symbol
+        - value
+        - timestamp
+      properties:
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        value:
+          $ref: "#/components/schemas/Currency"
+        timestamp:
+          $ref: "#/components/schemas/Timestamp"
+      
     SignUpRequest:
       type: object
       required:
@@ -1759,7 +1817,7 @@ components:
     LoansResponse:
       type: object
       required:
-        - userId
+        - id
         - liquidationPrice
         - collateral
         - collateralizationRatio
@@ -1769,14 +1827,13 @@ components:
         - scaledDebt
         - plan
         - state
+        - timeCreated
       properties:
         id:
           type: string
           description: Identifier for the vault.
-        userId:
-          type: integer
-          format: int64
-          description: Identifier for the user.
+        timeCreated:
+          $ref: "#/components/schemas/Timestamp"
         liquidationPrice:
           $ref: "#/components/schemas/Currency"
         collateral:
@@ -2139,7 +2196,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Coin"
-
+  
     Coin:
       type: object
       required:
@@ -2181,10 +2238,10 @@ components:
         tron: "10"
 
     WithdrawFees:
-      $ref: "#/components/schemas/NetworkAmount"
+      $ref: '#/components/schemas/NetworkAmount'
 
     MinWithdrawal:
-      $ref: "#/components/schemas/NetworkAmount"
+      $ref: '#/components/schemas/NetworkAmount'
 
     CoinConfig:
       type: object
@@ -2197,9 +2254,9 @@ components:
         isTradeable:
           type: boolean
         withdrawFees:
-          $ref: "#/components/schemas/WithdrawFees"
+          $ref: '#/components/schemas/WithdrawFees'
         minWithdrawal:
-          $ref: "#/components/schemas/MinWithdrawal"
+          $ref: '#/components/schemas/MinWithdrawal'
         needsMemo:
           type: boolean
 
@@ -2240,9 +2297,10 @@ components:
           ZAR: "89.01"
           ETH: "0.02"
 
+
     Error:
       type: object
-      required:
+      required: 
         - msg
         - reasons
       properties:
@@ -2278,7 +2336,7 @@ components:
       type: object
       description: Localized error messages
       additionalProperties:
-        $ref: "#/components/schemas/ErrorDetail"
+        $ref: '#/components/schemas/ErrorDetail'
 
     UserError:
       type: object
@@ -2286,7 +2344,7 @@ components:
         - messages
       properties:
         messages:
-          $ref: "#/components/schemas/LocalizedMessages"
+          $ref: '#/components/schemas/LocalizedMessages'
 
     TransactionType:
       type: string
@@ -2648,6 +2706,7 @@ components:
           items:
             $ref: "#/components/schemas/Redemption"
 
+
     Redemption:
       type: object
       required:
@@ -2903,8 +2962,8 @@ components:
           type: string
           description: Intent to create a vault
           enum:
-            - create
-            - preview
+            - Create
+            - Preview
           example: "Create"
         planName:
           type: string
