@@ -32,10 +32,10 @@ func createLoan(
 	}
 
 	var loansResponse wallet.LoansResponse
-	err = HandleAPIResponse(httpResponse, &loansResponse)
+	err = wallet.HandleAPIResponse(context.Background(), httpResponse, &loansResponse)
 	if err != nil {
-		if apiErr, ok := err.(*APIError); ok {
-			fmt.Println(PrettyPrintError(apiErr))
+		if apiErr, ok := err.(*wallet.APIError); ok {
+			fmt.Println(wallet.PrettyPrintError(apiErr))
 		} else {
 			log.Printf("Unexpected error: %v", err)
 		}
@@ -59,10 +59,10 @@ func loanStatus(
 	}
 
 	var loansResponse wallet.LoansResponse
-	err = HandleAPIResponse(httpResponse, &loansResponse)
+	err = wallet.HandleAPIResponse(context.Background(), httpResponse, &loansResponse)
 	if err != nil {
-		if apiErr, ok := err.(*APIError); ok {
-			fmt.Println(PrettyPrintError(apiErr))
+		if apiErr, ok := err.(*wallet.APIError); ok {
+			fmt.Println(wallet.PrettyPrintError(apiErr))
 		} else {
 			log.Printf("Unexpected error: %v", err)
 		}
@@ -90,7 +90,7 @@ func CreateLoanExample() {
 	}
 	client, err := wallet.NewClient(
 		"https://testwapi.zarban.io",
-		wallet.WithRequestEditorFn(AddHeaders(headers)),
+		wallet.WithRequestEditorFn(wallet.AddHeaders(headers)),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create wallet client: %v", err)
@@ -116,7 +116,7 @@ func CreateLoanExample() {
 	}
 	client, err = wallet.NewClient(
 		"https://testwapi.zarban.io",
-		wallet.WithRequestEditorFn(AddHeaders(headers)),
+		wallet.WithRequestEditorFn(wallet.AddHeaders(headers)),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create wallet client: %v", err)
