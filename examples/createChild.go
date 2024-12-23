@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/zarbanio/zarban-go/wallet"
 )
@@ -34,10 +33,11 @@ func CreateChildExample() {
 	}
 
 	var loginResponse wallet.JwtResponse
-	err = HandleAPIResponse(httpResponse, &loginResponse)
+
+	err = wallet.HandleAPIResponse(context.Background(), httpResponse, &loginResponse)
 	if err != nil {
-		if apiErr, ok := err.(*APIError); ok {
-			fmt.Println(PrettyPrintError(apiErr))
+		if apiErr, ok := err.(*wallet.APIError); ok {
+			fmt.Println(wallet.PrettyPrintError(apiErr))
 		} else {
 			log.Printf("Unexpected error: %v", err)
 		}
@@ -55,14 +55,14 @@ func CreateChildExample() {
 	// re-configure it with the header editing function
 	client, err = wallet.NewClient(
 		"https://testwapi.zarban.io",
-		wallet.WithRequestEditorFn(AddHeaders(headers)),
+		wallet.WithRequestEditorFn(wallet.AddHeaders(headers)),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 
 	// Create a child user
-	const childUsername = "child_user_test230"
+	const childUsername = "child_user_test"
 	createChildUserRequest := wallet.CreateChildUserRequest{
 		Username: childUsername,
 	}
@@ -75,10 +75,10 @@ func CreateChildExample() {
 	}
 
 	var createChildResponse wallet.User
-	err = HandleAPIResponse(httpResponse, &createChildResponse)
+	err = wallet.HandleAPIResponse(context.Background(), httpResponse, &createChildResponse)
 	if err != nil {
-		if apiErr, ok := err.(*APIError); ok {
-			fmt.Println(PrettyPrintError(apiErr))
+		if apiErr, ok := err.(*wallet.APIError); ok {
+			fmt.Println(wallet.PrettyPrintError(apiErr))
 		} else {
 			log.Printf("Unexpected error: %v", err)
 		}
@@ -94,7 +94,7 @@ func CreateChildExample() {
 	// re-configure it with the header editing function
 	client, err = wallet.NewClient(
 		"https://testwapi.zarban.io",
-		wallet.WithRequestEditorFn(AddHeaders(headers)),
+		wallet.WithRequestEditorFn(wallet.AddHeaders(headers)),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
@@ -108,10 +108,10 @@ func CreateChildExample() {
 	}
 
 	var getUserProfileResponse wallet.User
-	err = HandleAPIResponse(httpResponse, &getUserProfileResponse)
+	err = wallet.HandleAPIResponse(context.Background(), httpResponse, &getUserProfileResponse)
 	if err != nil {
-		if apiErr, ok := err.(*APIError); ok {
-			fmt.Println(PrettyPrintError(apiErr))
+		if apiErr, ok := err.(*wallet.APIError); ok {
+			fmt.Println(wallet.PrettyPrintError(apiErr))
 		} else {
 			log.Printf("Unexpected error: %v", err)
 		}
@@ -120,13 +120,4 @@ func CreateChildExample() {
 
 	fmt.Println("Child user profile:")
 	fmt.Println(getUserProfileResponse)
-}
-
-func AddHeaders(headers map[string]string) func(ctx context.Context, req *http.Request) error {
-	return func(ctx context.Context, req *http.Request) error {
-		for key, value := range headers {
-			req.Header.Set(key, value)
-		}
-		return nil
-	}
 }

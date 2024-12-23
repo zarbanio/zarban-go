@@ -1,0 +1,11 @@
+# Timestamp
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**jalaali** | **str** | Jalaali date | 
+**gregorian** | **str** | Gregorian date | 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

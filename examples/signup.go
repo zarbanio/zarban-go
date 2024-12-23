@@ -28,10 +28,10 @@ func SignupExample() {
 	}
 
 	var successResponse wallet.SimpleResponse
-	err = HandleAPIResponse(httpResponse, &successResponse)
+	err = wallet.HandleAPIResponse(context.Background(), httpResponse, &successResponse)
 	if err != nil {
-		if apiErr, ok := err.(*APIError); ok {
-			fmt.Println(PrettyPrintError(apiErr))
+		if apiErr, ok := err.(*wallet.APIError); ok {
+			fmt.Println(wallet.PrettyPrintError(apiErr))
 		} else {
 			log.Printf("Unexpected error: %v", err)
 		}
