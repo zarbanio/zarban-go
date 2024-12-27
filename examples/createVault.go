@@ -88,21 +88,40 @@ func getIlksSymbol(client service.Client) ([]service.Symbol, error) {
 }
 
 func toNative(client service.Client, symbol service.Symbol, amount float64) (string, error) {
-	// 1) get symbols
+	// Get symbols
 	symbols, err := getIlksSymbol(client)
 	if err != nil {
-		return "", err
-	}
-	// 2) create ratio dict
-	ratio := map[service.Symbol]int{
-		"ZAR": 18,
+		return "", fmt.Errorf("failed to get symbols: %w", err)
 	}
 
-	for _, s := range symbols {
-		ratio[s] = 18
+	// Define precision map
+	precision := map[service.Symbol]int{
+		"ZAR": 18,
 	}
-	result := int64(amount * math.Pow10(ratio[symbol]))
-	return fmt.Sprintf("%d", result), nil
+	for _, s := range symbols {
+		precision[s] = 18
+	}
+
+	// Validate symbol
+	p, ok := precision[symbol]
+	if !ok {
+		return "", fmt.Errorf("unknown symbol: %s", symbol)
+	}
+
+	// Convert amount to native units using big.Int
+	scaledAmount := new(big.Int)
+	floatAmount := new(big.Float).SetFloat64(amount)
+	scale := new(big.Float).SetFloat64(math.Pow10(p))
+
+	// Multiply amount by scale factor
+	floatAmount.Mul(floatAmount, scale)
+
+	// Convert to integer, checking for accuracy
+	if _, accuracy := floatAmount.Int(scaledAmount); accuracy != big.Exact {
+		return "", fmt.Errorf("lost precision during conversion")
+	}
+
+	return scaledAmount.String(), nil
 }
 
 func getVaultTxSteps(
@@ -324,20 +343,19 @@ func CreateVaultExample() {
 	}
 
 	account := WALLET_ADDRESS
-	fmt.Println(account)
+
 	// Get the chain ID
 	chainID, err := ethClient.NetworkID(context.Background())
 	if err != nil {
 		log.Fatalf("Failed to get chain ID: %v", err)
 		return
 	}
-	fmt.Println(chainID)
 
 	// Define vault creation parameters
-	const ILK_NAME = "ETHA"       // Replace with your desired ilk
-	const SYMBOL = "ETH"          // Replace with the symbol associated with your ilk
-	const COLLATERAL_AMOUNT = .01 // Replace with your desired amount
-	const LOAN_AMOUNT = 1000      // Replace with your desired amount
+	const ILK_NAME = "ETHA"        // Replace with your desired ilk
+	const SYMBOL = "ETH"           // Replace with the symbol associated with your ilk
+	const COLLATERAL_AMOUNT = .001 // Replace with your desired amount
+	const LOAN_AMOUNT = 100        // Replace with your desired amount
 
 	vaultSteps, err := getVaultTxSteps(
 		*client,
@@ -381,7 +399,7 @@ func CreateVaultExample() {
 					return
 				}
 				label := data.Label
-				fmt.Printf("steps %d: %s\n", number+1, label)
+				fmt.Printf("steps %d: %s\n", number+1, label["en-US"])
 				if (stepNumber - 1) == number {
 					fmt.Println("processing...")
 					methodParams := data.MethodParameters
@@ -409,6 +427,7 @@ func CreateVaultExample() {
 
 					// Prepare transaction
 					tx := types.NewTransaction(nonce, common.HexToAddress(addressTo), big.NewInt(int64(value)), uint64(gas), gasPrice, []byte(calldata))
+
 					txToSave := EthereumTransaction{
 						From:     WALLET_ADDRESS,
 						To:       addressTo,
@@ -420,7 +439,7 @@ func CreateVaultExample() {
 						Data:     methodParams.Calldata,
 					}
 					// Sign the transaction
-					signedTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1)), privateKey) // 1 is for Ethereum mainnet chainID
+					signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
 					if err != nil {
 						log.Fatalf("Failed to sign the transaction: %v", err)
 						return
@@ -444,12 +463,15 @@ func CreateVaultExample() {
 						return
 					}
 					// Wait for the transaction to be mined
-					receipt, err := waitForTransactionReceipt(ethClient, common.HexToHash(txHash), 120, 15)
+					receipt, err := waitForTransactionReceipt(ethClient, common.HexToHash(txHash), 120*time.Second, 15*time.Second)
 					if err != nil {
 						log.Fatalf("Transaction %s was not mined within the timeout period.\n", txHash)
 						return
 					}
-
+					if receipt.Status == 0 {
+						log.Fatalf("Transaction %s failed: %v", txHash, receipt.Status)
+						return
+					}
 					// Print the block number
 					fmt.Printf("Transaction %s was mined in block %d\n", txHash, receipt.BlockNumber)
 				}

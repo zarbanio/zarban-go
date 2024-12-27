@@ -125,7 +125,6 @@ func CreateLoanExample() {
 
 	// Track loan status
 	fmt.Println("\nTracking loan status...")
-	loanStatus(*client, createLoanResponse.Id)
 	loanDetails, err := loanStatus(
 		*client,
 		createLoanResponse.Id,
