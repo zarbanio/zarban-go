@@ -25,6 +25,8 @@ tags:
     description: Operations related to Addresses
   - name: LendingPool
     description: Operations related to LendingPool
+  - name: Uniswap
+    description: Operations related to Uniswap
   - name: StableCoinSystem
     description: Operations related to Zarban Stable-Coin System
   - name: Ilks
@@ -47,7 +49,7 @@ tags:
     description: Operations related to Points
   - name: Staking
     description: Operations related to Staking
-
+    
 paths:
   /v2/ws:
     summary: Websocket to Fetch Unfilled Orders
@@ -59,7 +61,7 @@ paths:
       summary: Websocket Upgrade
       description: Upgrade to websocket connection
       responses:
-        "101":
+        '101':
           description: Switching Protocols
   /v2/permit/single:
     get:
@@ -84,19 +86,19 @@ paths:
             type: string
             pattern: "0x[a-fA-F0-9]{40}"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PermitSingle"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -117,24 +119,57 @@ paths:
             schema:
               $ref: "#/components/schemas/QuoteRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/QuoteResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /v2/swap/tx/swap:
+    post:
+      operationId: multiStepSwap
+      tags:
+        - Swap
+      summary: Get steps for a swap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultiStepSwapTxResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+
 
   /v2/orders/sync:
     post:
@@ -150,19 +185,19 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateOrderRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -252,19 +287,19 @@ paths:
             type: integer
             default: 10
       responses:
-        "200":
+        '200':
           description: Successful response.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/OrderResponse"
-        "400":
+        '400':
           description: Bad request (e.g. invalid filter parameters).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal Server Error.
           content:
             application/json:
@@ -286,7 +321,7 @@ paths:
             type: string
           description: The type of addresses to return
       responses:
-        "200":
+        '200':
           description: A JSON object with addresses
           content:
             application/json:
@@ -308,19 +343,19 @@ paths:
             schema:
               $ref: "#/components/schemas/LendingpoolDepositTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/LendingpoolDepositTxResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserError"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -342,19 +377,19 @@ paths:
             schema:
               $ref: "#/components/schemas/LendingpoolWithdrawTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/LendingpoolWithdrawTxResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserError"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -376,19 +411,19 @@ paths:
             schema:
               $ref: "#/components/schemas/LendingpoolBorrowTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/LendingpoolBorrowTxResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserError"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -410,19 +445,19 @@ paths:
             schema:
               $ref: "#/components/schemas/LendingpoolRepayTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/LendingpoolRepayTxResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserError"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -444,19 +479,19 @@ paths:
             schema:
               $ref: "#/components/schemas/LendingpoolUseAssetAsCollateralTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/LendingpoolUseAssetAsCollateralTxResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserError"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -478,19 +513,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemCreateVaultTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -512,19 +547,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemDepositCollateralTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -546,19 +581,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemWithdrawCollateralTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -569,7 +604,7 @@ paths:
     post:
       operationId: mintZarTransaction
       tags:
-        - StableCoinSystem
+        - StableCoinSystem  
       summary: Mint ZAR
       description: Mint ZAR
       requestBody:
@@ -580,19 +615,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemMintZarTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -614,19 +649,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemRepayZarTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -648,19 +683,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemBarkTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -681,19 +716,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemZarjoinTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -714,19 +749,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemZarexitTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -747,19 +782,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemGemexitTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -780,19 +815,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemRedoTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -813,19 +848,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StablecoinSystemTakeTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -847,19 +882,19 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: Successful response.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/FormattedReserveData"
-        "400":
+        '400':
           description: Bad request (e.g. invalid asset address).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal Server Error.
           content:
             application/json:
@@ -875,13 +910,13 @@ paths:
       summary: Get all Ilks
       description: Retrieve a list of all available ilks.
       responses:
-        "200":
+        '200':
           description: Successfully retrieved list of ilks
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/IlksResponse"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -904,13 +939,13 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: Successfully retrieved ILK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Ilk"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -926,7 +961,7 @@ paths:
       summary: Get collector data
       description: Get collector data
       responses:
-        "200":
+        '200':
           description: A JSON object with collector data
           content:
             application/json:
@@ -970,19 +1005,19 @@ paths:
             type: integer
             default: 50
       responses:
-        "200":
+        '200':
           description: List of user deposits
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserDepositsResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1026,19 +1061,19 @@ paths:
             type: integer
             default: 50
       responses:
-        "200":
+        '200':
           description: List of user borrows
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserBorrowsResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1061,25 +1096,25 @@ paths:
             type: string
             pattern: "0x[a-fA-F0-9]{64}"
       responses:
-        "200":
+        '200':
           description: Event details
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/EventDetailsResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "404":
+        '404':
           description: Not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1100,19 +1135,19 @@ paths:
             type: string
           description: Symbol of the price
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PriceListResponse"
-        "400":
+        '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal Server Error
           content:
             application/json:
@@ -1134,25 +1169,25 @@ paths:
           schema:
             type: integer
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Vault"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "404":
+        '404':
           description: Not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1184,26 +1219,26 @@ paths:
               - withdraw
               - mint
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/VaultEventsResponse"
 
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "404":
+        '404':
           description: Not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1225,25 +1260,25 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/VaultsResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "404":
+        '404':
           description: Not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1267,25 +1302,25 @@ paths:
             format: address
             example: "0x1234567890123456789012345678901234567890"
       responses:
-        "200":
+        '200':
           description: Account details
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Account"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "404":
+        '404':
           description: Not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1300,13 +1335,13 @@ paths:
       summary: Get scoreboard
       description: Get scoreboard
       responses:
-        "200":
+        '200':
           description: A JSON object with scoreboard data
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Scoreboard"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1328,19 +1363,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StakingStakeTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/StakingStakeTxResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserError"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1362,19 +1397,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StakingWithdrawTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/StakingWithdrawTxResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserError"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1396,19 +1431,19 @@ paths:
             schema:
               $ref: "#/components/schemas/StakingCollectRewardTxRequest"
       responses:
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/StakingCollectRewardTxResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserError"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1457,19 +1492,19 @@ paths:
             type: integer
             default: 50
       responses:
-        "200":
+        '200':
           description: List of stakes
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserStakesResponse"
-        "400":
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1484,13 +1519,596 @@ paths:
       summary: Get staking plans
       description: Get staking plans
       responses:
-        "200":
+        '200':
           description: List of stakes
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/StakePlansResponse"
-        "500":
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /v2/lendingpool/tx/collectreward:
+    post:
+      operationId: collectLendingpoolRewards
+      tags:
+        - LendingPool
+      summary: Collect lendingpool rewards
+      description: Collect lendingpool rewards
+      requestBody:
+        required: true
+        description: Collect reward transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LendingpoolCollectRewardTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/createposition:
+    post:
+      operationId: createUniswapV3Position
+      tags:
+        - Uniswap
+      summary: Create Uniswap V3 position
+      description: Create Uniswap V3 position
+      requestBody:
+        required: true
+        description: Create position transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUniswapV3PositionTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateUniswapV3PositionTxResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/collectreward:
+    post:
+      operationId: collectUniswapV3Rewards
+      tags:
+        - Uniswap
+      summary: Collect Uniswap V3 position rewards
+      description: Collect Uniswap V3 position rewards
+      requestBody:
+        required: true
+        description: Collect rewards transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectUniswapV3RewardsTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/increaseliquidity:
+    post:
+      operationId: increaseUniswapV3PositionLiquidity
+      tags:
+        - Uniswap
+      summary: Increase Uniswap V3 position liquidity
+      description: Increase Uniswap V3 position liquidity
+      requestBody:
+        required: true
+        description: Increase liquidity transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncreaseUniswapV3PositionLiquidityTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/decreaseliquidity:
+    post:
+      operationId: decreaseUniswapV3PositionLiquidity
+      tags:
+        - Uniswap
+      summary: Decrease Uniswap V3 position liquidity
+      description: Decrease Uniswap V3 position liquidity
+      requestBody:
+        required: true
+        description: Decrease liquidity transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecreaseUniswapV3PositionLiquidityTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/burn:
+    post:
+      operationId: burnUniswapV3PositionNFT
+      tags:
+        - Uniswap
+      summary: Burn Uniswap V3 position nft
+      description: Burn Uniswap V3 position nft
+      requestBody:
+        required: true
+        description: Burn position nft transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BurnUniswapV3PositionNFTTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/positions:
+    get:
+      operationId: getUserUniswapV3Positions
+      summary: Get the list of a user's uniswap v3 positions
+      description: Get the list of a user's uniswap v3 positions.
+      tags:
+        - Uniswap
+      parameters:
+        - name: user
+          in: query
+          description: Ethereum address of the user
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: status
+          in: query
+          description: The status of the position
+          required: false
+          schema:
+            type: string
+            enum:
+              - InRange
+              - OutOfRange
+              - Closed
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPositions"
+        '400':
+          description: Bad request (e.g. invalid parameters).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/uniswap/positions/{tokenId}:
+    get:
+      operationId: getUniswapV3PositionDetails
+      summary: Get details of a specific uniswap v3 position
+      description: Get details of a specific uniswap v3 position.
+      tags:
+        - Uniswap
+      parameters:
+        - name: tokenId
+          in: path
+          description: The token id of the position
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PositionDetails"
+        '400':
+          description: Bad request (e.g. invalid parameters).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/uniswap/tx/stake:
+    post:
+      operationId: stakeUniswapV3PositionNFT
+      tags:
+        - Uniswap
+      summary: Stake Uniswap V3 position nft
+      description: Stake Uniswap V3 position nft in UniswapV3Staker contract
+      requestBody:
+        required: true
+        description: Stake UniswapV3 LP nft transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StakeUniswapV3PositionTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/unstake:
+    post:
+      operationId: unstakeUniswapV3PositionNFT
+      tags:
+        - Uniswap
+      summary: Unstake Uniswap V3 position nft
+      description: Unstake Uniswap V3 position nft in UniswapV3Staker contract
+      requestBody:
+        required: true
+        description: Unstake UniswapV3 LP nft transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnstakeUniswapV3PositionTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/collectstakingreward:
+    post:
+      operationId: collectUniswapV3StakingRewards
+      tags:
+        - Uniswap
+      summary: Collect Uniswap V3 staking rewards
+      description: Collect Uniswap V3 staking rewards
+      requestBody:
+        required: true
+        description: Collect staking rewards transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectUniswapV3StakingRewardsTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/pools:
+    get:
+      operationId: getUniswapV3PoolByTokens
+      tags:
+        - Uniswap
+      summary: Get Uniswap V3 pool details
+      description: Get Uniswap V3 pool details by token0 and token1
+      parameters:
+        - name: token0
+          in: query
+          description: Ethereum address of the token0
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: token1
+          in: query
+          description: Ethereum address of the token1
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: fee
+          in: query
+          description: Fee tiers
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              enum:
+                - 100
+                - 500
+                - 3000
+                - 10000
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UniswapV3PoolsList"
+        '400':
+          description: Bad request (e.g. invalid parameters).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/uniswap/pools/ticks:
+    get:
+      operationId: getUniswapV3PoolTicksPrices
+      tags:
+        - Uniswap
+      summary: Get Uniswap V3 ticks prices around a specific price
+      description: Get Uniswap V3 ticks prices around a specific price
+      parameters:
+        - name: token0
+          in: query
+          description: Ethereum address of the token0
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: token1
+          in: query
+          description: Ethereum address of the token1
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: fee
+          in: query
+          description: Fee tier
+          required: true
+          schema:
+            type: integer
+            enum:
+              - 100
+              - 500
+              - 3000
+              - 10000
+        - name: price
+          in: query
+          description: Price of one unit of token0 in base of token1 (in token1 native token units)
+          required: true
+          schema:
+            type: string
+            example: "1000000000000000000"
+      responses:
+        '200':
+          description: Uniswap V3 pool details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UniswapV3PoolSurroundingTicks"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/uniswap/staking/{address}:
+    get:
+      operationId: getUniswapV3StakerActiveStakes
+      tags:
+        - Uniswap
+      summary: Get active stakes in UniswapV3Staker
+      description: Get active stakes in UniswapV3Staker
+      parameters:
+        - name: address
+          in: path
+          description: Ethereum address of the account
+          required: true
+          schema:
+            type: string
+            format: address
+            example: "0x1234567890123456789012345678901234567890"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UniswapV3StakerUserStakesResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/uniswap/staking/incentives:
+    get:
+      operationId: getUniswapV3StakerIncentives
+      tags:
+        - Uniswap
+      summary: Get UniswapV3Staker incentives
+      description: Get UniswapV3Staker incentives
+      parameters:
+        - name: rewardTokens
+          in: query
+          description: Address of the reward token
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              format: address
+              example: "0x1234567890123456789012345678901234567890"
+        - name: status
+          in: query
+          description: Status of incentives
+          required: false
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UniswapV3StakerIncentivesResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        '500':
           description: Internal server error
           content:
             application/json:
@@ -1551,13 +2169,14 @@ components:
             - EIP712SignRequest
             - PersonalSignRequest
         data:
-          $ref: "#/components/schemas/ChainActivityStepData"
+          $ref: '#/components/schemas/ChainActivityStepData'
 
     ChainActivityStepData:
       oneOf:
-        - $ref: "#/components/schemas/PreparedTx"
-        - $ref: "#/components/schemas/EIP712SignRequest"
-        - $ref: "#/components/schemas/PersonalSignRequest"
+        - $ref: '#/components/schemas/PreparedTx'
+        - $ref: '#/components/schemas/EIP712SignRequest'
+        - $ref: '#/components/schemas/PersonalSignRequest'
+
 
     PersonalSignRequest:
       type: object
@@ -1668,7 +2287,7 @@ components:
           $ref: "#/components/schemas/ChainActivity"
         response:
           $ref: "#/components/schemas/LendingpoolTxResponse"
-
+    
     LendingpoolBorrowTxRequest:
       type: object
       required:
@@ -1686,7 +2305,7 @@ components:
           type: string
           description: The amount to borrow in native token units
           example: "10000000000000000000"
-
+    
     LendingpoolBorrowTxResponse:
       type: object
       properties:
@@ -1694,7 +2313,7 @@ components:
           $ref: "#/components/schemas/ChainActivity"
         response:
           $ref: "#/components/schemas/LendingpoolTxResponse"
-
+    
     LendingpoolRepayTxRequest:
       type: object
       required:
@@ -1711,7 +2330,7 @@ components:
         amount:
           type: string
           description: The amount to repay in native token units, if not provided, it will be calculated based on the borrow balance
-          example: "10000000000000000000"
+          example: "10000000000000000000" 
     LendingpoolRepayTxResponse:
       type: object
       properties:
@@ -1719,7 +2338,7 @@ components:
           $ref: "#/components/schemas/ChainActivity"
         response:
           $ref: "#/components/schemas/LendingpoolTxResponse"
-
+    
     LendingpoolUseAssetAsCollateralTxRequest:
       type: object
       required:
@@ -1737,7 +2356,7 @@ components:
           description: Symbol of asset
         enabled:
           type: boolean
-          description: Enable or disable the asset as collateral
+          description: Enable or disable the asset as collateral 
     LendingpoolUseAssetAsCollateralTxResponse:
       type: object
       properties:
@@ -2068,8 +2687,6 @@ components:
         - tradeType
         - inputToken
         - outputToken
-        - recipient
-        - amount
       properties:
         requestId:
           type: string
@@ -2186,7 +2803,7 @@ components:
         orderHash:
           type: string
           pattern: ^(0x)?[0-9a-fA-F]{64}$
-
+    
     OrderResponse:
       type: object
       required:
@@ -2371,19 +2988,19 @@ components:
           format: address
           example: "0x1234567890123456789012345678901234567890"
         walletBalance:
-          $ref: "#/components/schemas/WalletBalance"
+          $ref: '#/components/schemas/WalletBalance'
         netWorth:
-          $ref: "#/components/schemas/Currency"
+          $ref: '#/components/schemas/Currency'
         totalDebt:
-          $ref: "#/components/schemas/Currency"
+          $ref: '#/components/schemas/Currency'
         totalDeposits:
-          $ref: "#/components/schemas/Currency"
+          $ref: '#/components/schemas/Currency'
         lendingpoolSummary:
-          $ref: "#/components/schemas/AccountLendingpoolSummary"
+          $ref: '#/components/schemas/AccountLendingpoolSummary'
         stabelcoinSystemSummary:
-          $ref: "#/components/schemas/AccountStablecoinSystemSummary"
+          $ref: '#/components/schemas/AccountStablecoinSystemSummary'
         stakingSummary:
-          $ref: "#/components/schemas/AccountStakingSummary"
+          $ref: '#/components/schemas/AccountStakingSummary'
 
     WalletBalance:
       required:
@@ -2417,6 +3034,8 @@ components:
         - borrowPowerUsed
         - currentLiquidationThreshold
         - loanToValue
+        - totalRewards
+        - unclaimedRewards
       properties:
         totalDebt:
           $ref: "#/components/schemas/Currency"
@@ -2454,6 +3073,13 @@ components:
           type: string
           description: Loan to value in lending pool
           example: "0.30"
+        totalRewards:
+          $ref: "#/components/schemas/Currency"
+        unclaimedRewards:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccruedReward'
+
     AccountStablecoinSystemSummary:
       required:
         - totalDebt
@@ -2470,18 +3096,38 @@ components:
           example: "0.30"
     AccountStakingSummary:
       required:
+        - uniswapv3staker
+        - stakingrewards
+      properties:
+        uniswapv3staker:
+          $ref: '#/components/schemas/UniswapV3StakerAccountSummary'
+        stakingrewards:
+          $ref: '#/components/schemas/StakingRewardsAccountSummary'
+    StakingRewardsAccountSummary:
+      required:
         - totalStake
         - unclaimedReward
         - netApy
       properties:
         totalStake:
-          $ref: "#/components/schemas/Currency"
+          $ref: '#/components/schemas/Currency'
         unclaimedReward:
-          $ref: "#/components/schemas/Currency"
+          $ref: '#/components/schemas/Currency'
         netApy:
           type: string
           description: Net annual percentage yield in staking contract
           example: "0.30"
+    UniswapV3StakerAccountSummary:
+      required:
+        - unclaimedReward
+        - rewards
+      properties:
+        rewards:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccruedReward'
+        unclaimedReward:
+          $ref: '#/components/schemas/Currency'
 
     VaultsResponse:
       type: object
@@ -2554,16 +3200,16 @@ components:
         - payload
       properties:
         domain:
-          $ref: "#/components/schemas/EventDomain"
+          $ref: '#/components/schemas/EventDomain'
         id:
           type: integer
           description: Identifier for the event.
         name:
-          $ref: "#/components/schemas/EventName"
+          $ref: '#/components/schemas/EventName'
         raw:
-          $ref: "#/components/schemas/Log"
+          $ref: '#/components/schemas/Log'
         type:
-          $ref: "#/components/schemas/EventType"
+          $ref: '#/components/schemas/EventType'
         payload:
           type: object
           description: The payload of the event. The payload is a JSON-marshalled
@@ -2772,7 +3418,11 @@ components:
           type: string
           example: "0.1"
         price:
-          $ref: "#/components/schemas/Currency"
+          $ref: '#/components/schemas/Currency'
+        borrowIncentives:
+          $ref: '#/components/schemas/ReserveIncentives'
+        depositIncentives:
+          $ref: '#/components/schemas/ReserveIncentives'
 
     IlksResponse:
       type: object
@@ -2805,6 +3455,7 @@ components:
         - pip
         - hole
         - dirt
+        - duty
         - availableToBorrow
       properties:
         name:
@@ -2864,6 +3515,10 @@ components:
           $ref: "#/components/schemas/Currency"
         availableToBorrow:
           $ref: "#/components/schemas/Currency"
+        duty:
+          type: string
+          format: decimal
+          description: Duty
 
     Symbol:
       type: string
@@ -2986,6 +3641,8 @@ components:
           type: string
           format: string
           description: The supply APY.
+        incentives:
+          $ref: '#/components/schemas/ReserveIncentives'
 
     UserBorrowsResponse:
       type: object
@@ -2999,7 +3656,7 @@ components:
 
     LendingpoolBorrow:
       type: object
-      required: [user, underlyingAsset, amount, borrowRate, maxBorrowAmount]
+      required: [ user, underlyingAsset, amount, borrowRate, maxBorrowAmount ]
       properties:
         user:
           type: string
@@ -3014,7 +3671,26 @@ components:
           format: string
           description: The borrow rate.
         maxBorrowAmount:
-          $ref: "#/components/schemas/Currency"
+          $ref: '#/components/schemas/Currency'
+        incentives:
+          $ref: '#/components/schemas/ReserveIncentives'
+
+    Proxy:
+      type: object
+      required: [ address, owner, authority ]
+      properties:
+        address:
+          type: string
+          format: byte
+          description: The Ethereum address of the proxy.
+        owner:
+          type: string
+          format: string
+          description: The Ethereum address of the owner.
+        authority:
+          type: string
+          format: string
+          description: The Ethereum address of the authority.
 
     Currency:
       type: object
@@ -3028,7 +3704,7 @@ components:
         ETH: "0.02"
     Error:
       type: object
-      required:
+      required: 
         - msg
         - reasons
       properties:
@@ -3045,7 +3721,7 @@ components:
 
     UserError:
       type: object
-      required:
+      required: 
         - messages
         - reasons
       properties:
@@ -3147,7 +3823,7 @@ components:
           type: string
           description: The Persian name of the token.
           example: "زر"
-
+    
     AddressResponse:
       type: object
       required:
@@ -3193,15 +3869,15 @@ components:
       properties:
         totalAvailable:
           allOf:
-            - $ref: "#/components/schemas/Currency"
+            - $ref: '#/components/schemas/Currency'
             - description: Total available
         totalBorrows:
           allOf:
-            - $ref: "#/components/schemas/Currency"
+            - $ref: '#/components/schemas/Currency'
             - description: Total borrows
         totalMarketSize:
           allOf:
-            - $ref: "#/components/schemas/Currency"
+            - $ref: '#/components/schemas/Currency'
             - description: Total market size
 
     StablecoinSystemStats:
@@ -3215,48 +3891,48 @@ components:
         - systemSurplusLotSize
       properties:
         systemSurplus:
-          $ref: "#/components/schemas/SystemSurplus"
+          $ref: '#/components/schemas/SystemSurplus'
         systemDebt:
-          $ref: "#/components/schemas/SystemDebt"
+          $ref: '#/components/schemas/SystemDebt'
         systemDebtCeiling:
-          $ref: "#/components/schemas/SystemDebtCeiling"
+          $ref: '#/components/schemas/SystemDebtCeiling'
         systemSurplusBuffer:
-          $ref: "#/components/schemas/SystemSurplusBuffer"
+          $ref: '#/components/schemas/SystemSurplusBuffer'
         systemBadDebt:
-          $ref: "#/components/schemas/SystemBadDebt"
+          $ref: '#/components/schemas/SystemBadDebt'
         systemSurplusLotSize:
-          $ref: "#/components/schemas/SystemSurplusLotSize"
+          $ref: '#/components/schemas/SystemSurplusLotSize'
 
     SystemSurplus:
       description: System surplus
       allOf:
-        - $ref: "#/components/schemas/Currency"
+        - $ref: '#/components/schemas/Currency'
 
     SystemDebt:
       description: System debt
       allOf:
-        - $ref: "#/components/schemas/Currency"
+        - $ref: '#/components/schemas/Currency'
 
     SystemDebtCeiling:
       description: System debt ceiling
       allOf:
-        - $ref: "#/components/schemas/Currency"
+        - $ref: '#/components/schemas/Currency'
 
     SystemSurplusBuffer:
       description: System surplus buffer
       allOf:
-        - $ref: "#/components/schemas/Currency"
+        - $ref: '#/components/schemas/Currency'
 
     SystemBadDebt:
       description: System bad debt
       allOf:
-        - $ref: "#/components/schemas/Currency"
+        - $ref: '#/components/schemas/Currency'
 
     SystemSurplusLotSize:
       description: System surplus lot size
       allOf:
-        - $ref: "#/components/schemas/Currency"
-
+        - $ref: '#/components/schemas/Currency'
+      
     StakingStakeTxRequest:
       type: object
       required:
@@ -3283,6 +3959,14 @@ components:
       properties:
         chainActivity:
           $ref: "#/components/schemas/ChainActivity"
+
+    MultiStepSwapTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+        quote:
+          $ref: "#/components/schemas/QuoteResponse"
 
     StakingWithdrawTxRequest:
       type: object
@@ -3344,6 +4028,40 @@ components:
           items:
             $ref: "#/components/schemas/UserStake"
 
+    LendingpoolCollectRewardTxRequest:
+      type: object
+      required:
+        - user
+        - assets
+        - recipient
+      properties:
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        recipient:
+          type: string
+          description: Ethereum address of the recipient
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        assets:
+          type: array
+          items:
+            type: string
+            description: Asset address
+            format: address
+            example: "0x1234567890123456789012345678901234567890"
+        amount:
+          type: string
+          description: The amount to claim in native reward token units, if not provided, all rewards will be claimed
+          example: "10000000000000000000"
+        rewardToken:
+          type: string
+          description: Ethereum address of the reward token (if not provided, all reward tokens will be considered. In this case, do not provide amount)
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+    
     UserStake:
       type: object
       required:
@@ -3420,4 +4138,630 @@ components:
         rewardToken:
           $ref: "#/components/schemas/Token"
         finishAt:
+          $ref: '#/components/schemas/Timestamp'
+    
+    ReserveIncentives:
+      type: object
+      required:
+        - apy
+        - rewards
+      properties:
+        apy:
+          type: string
+          description: Annual percentage yield of the reserve
+          example: "0.12"
+        rewards:
+          type: array
+          items: 
+            $ref: '#/components/schemas/RewardToken'
+    
+    RewardToken:
+      type: object
+      required:
+        - token
+        - apy
+      properties:
+        token:
+          $ref: '#/components/schemas/Token'
+        apy:
+          type: string
+          description: Annual percentage yield of the reward token
+          example: "0.12"
+    
+    AccruedReward:
+      type: object
+      required:
+        - token
+        - amount
+      properties:
+        token:
+          $ref: '#/components/schemas/Token'
+        amount:
+          $ref: '#/components/schemas/Currency'
+
+    CreateUniswapV3PositionTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+        preview:
+          $ref: "#/components/schemas/UniswapV3PositionPreview"
+
+    UniswapV3PositionPreview:
+      type: object
+      required:
+        - token0
+        - token1
+        - fee
+        - tickLower
+        - tickUpper
+        - priceLower
+        - priceUpper
+        - amount0
+        - amount1
+      properties:
+        token0:
+          type: string
+          description: Ethereum address of the token0
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+          example: "0x1234567890123456789012345678901234567890"
+        token1:
+          type: string
+          description: Ethereum address of the token1
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+          example: "0x1234567890123456789012345678901234567890"
+        fee:
+          type: integer
+          format: int64
+          description: Pool fee
+          example: 500
+        tickLower:
+          type: integer
+          format: int64
+          description: Lower tick of position
+          example: 4000
+        tickUpper:
+          type: integer
+          format: int64
+          description: Upper tick of position
+          example: 8000
+        priceLower:
+          type: string
+          format: string
+          description: Minimum price of one token0 in base of token1 (in token1 native token units)
+          example: "1000000000000000000"
+        priceUpper:
+          type: string
+          format: string
+          description: Maximum price of one token0 in base of token1 (in token1 native token units)
+          example: "1000000000000000000"
+        amount0:
+          type: string
+          format: string
+          description: The amount of token0 in native token units
+          example: "10000000000000000000"
+        amount1:
+          type: string
+          format: string
+          description: The amount of token1 in native token units
+          example: "10000000000000000000"
+
+    CreateUniswapV3PositionTxRequest:
+      type: object
+      required:
+        - token0
+        - token1
+        - fee
+        - intent
+      properties:
+        token0:
+          type: string
+          description: Ethereum address of the token0
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+          example: "0x1234567890123456789012345678901234567890"
+        token1:
+          type: string
+          description: Ethereum address of the token1
+          pattern: ^(0x)?[0-9a-fA-F]{40}$
+          example: "0x1234567890123456789012345678901234567890"
+        fee:
+          type: integer
+          format: int64
+          description: Pool fee
+          example: 500
+        intent:
+          type: string
+          enum:
+            - Preview
+            - Create
+          example: "Preview"
+        priceLower:
+          type: string
+          format: string
+          description: Minimum price of one token0 in base of token1 (in token1 native token units)
+          example: "1000000000000000000"
+        priceUpper:
+          type: string
+          format: string
+          description: Maximum price of one token0 in base of token1 (in token1 native token units)
+          example: "1000000000000000000"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        amount0:
+          type: string
+          format: string
+          description: The amount of token0 in native token units
+          example: "10000000000000000000"
+        amount1:
+          type: string
+          format: string
+          description: The amount of token1 in native token units
+          example: "10000000000000000000"
+
+    CollectUniswapV3RewardsTxRequest:
+      type: object
+      required:
+        - tokenId
+        - user
+      properties:
+        tokenId:
+          type: string
+          format: string
+          description: token id
+          example: "413245"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        amount0Max:
+          type: string
+          format: string
+          description: The maximum amount of token0 rewards to be received in native token units
+          example: "10000000000000000000"
+        amount1Max:
+          type: string
+          format: string
+          description: The maximum amount of token1 rewards to be received in native token units
+          example: "10000000000000000000"
+        unwrap:
+          type: boolean
+          default: false
+          description: Whether to unwrap the ETH rewards or not
+
+    IncreaseUniswapV3PositionLiquidityTxRequest:
+      type: object
+      required:
+        - tokenId
+        - user
+      properties:
+        tokenId:
+          type: string
+          format: string
+          description: token id
+          example: "413245"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        amount0:
+          type: string
+          format: string
+          description: The amount of token0 that user wants to deposit in native token units
+          example: "10000000000000000000"
+        amount1:
+          type: string
+          format: string
+          description: The amount of token1 that user wants to deposit in native token units
+          example: "10000000000000000000"
+        useNativeAsset:
+          type: boolean
+          default: false
+          description: Whether to use native asset or not (only for ETH)
+
+    DecreaseUniswapV3PositionLiquidityTxRequest:
+      type: object
+      required:
+        - tokenId
+        - percentage
+        - user
+      properties:
+        tokenId:
+          type: string
+          format: string
+          description: token id
+          example: "413245"
+        percentage:
+          type: integer
+          format: int64
+          example: 1250
+          description: The percentage of liquidity to be removed in bps (1/10000)
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        unwrap:
+          type: boolean
+          default: false
+          description: Whether to unwrap or not (only for WETH)
+        burn:
+          type: boolean
+          default: false
+          description: Whether to burn position nft or not (only for when percentage is 10000)
+
+    BurnUniswapV3PositionNFTTxRequest:
+      type: object
+      required:
+        - tokenId
+        - user
+      properties:
+        tokenId:
+          type: string
+          format: string
+          description: token id
+          example: "413245"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+    
+    Tick:
+      type: object
+      required:
+        - tick
+        - price
+        - isExtreme
+      properties:
+        tick:
+          type: integer
+          format: int64
+          description: The tick value.
+          example: 4000
+        price:
+          $ref: "#/components/schemas/Currency"
+        isExtreme:
+          type: boolean
+          description: Whether the tick is extreme or not
+
+    PositionDetails:
+      type: object
+      required:
+        - tokenId
+        - token0
+        - token1
+        - fee
+        - tickLower
+        - tickUpper
+        - currentTick
+        - liquidity
+        - token0UncollectedFees
+        - token1UncollectedFees
+        - amount0
+        - amount1
+        - poolId
+        - owner
+        - status
+        - tokenURI
+      properties:
+        tokenId:
+          type: string
+          format: string
+          description: token id
+          example: "413245"
+        token0:
+          $ref: '#/components/schemas/Token'
+        token1:
+          $ref: '#/components/schemas/Token'
+        fee:
+          type: integer
+          format: int64
+          description: Pool fee
+          example: 500
+        tickLower:
+          $ref: '#/components/schemas/Tick'
+        tickUpper:
+          $ref: '#/components/schemas/Tick'
+        currentTick:
+          $ref: '#/components/schemas/Tick'
+        liquidity:
+          type: string
+          format: string
+          description: position's liquidity
+          example: "4000"
+        token0UncollectedFees:
+          $ref: '#/components/schemas/Currency'
+        token1UncollectedFees:
+          $ref: '#/components/schemas/Currency'
+        amount0:
+          $ref: '#/components/schemas/Currency'
+        amount1:
+          $ref: '#/components/schemas/Currency'
+        poolId:
+          type: string
+          description: Position's pool address
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        owner:
+          type: string
+          description: Ethereum address of the position's owner
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        status:
+          type: string
+          enum:
+            - InRange
+            - OutOfRange
+            - Closed
+          description: Position's status
+        tokenURI:
+          type: string
+          description: The image URI of the position's token
+
+    UserPositions:
+      type: object
+      required:
+        - positions
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PositionDetails"
+
+    UniswapV3StakerIncentiveKeyRequest:
+      type: object
+      required:
+        - rewardToken
+        - pool
+        - startTime
+        - endTime
+        - refundee
+      properties:
+        rewardToken:
+          type: string
+          description: Ethereum address of the reward token
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        pool:
+          type: string
+          description: Ethereum address of the liquidity pool
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        startTime:
+          type: integer
+          description: Incentive start time timestamp
+          example: 1730000000
+        endTime:
+          type: integer
+          description: Incentive end time timestamp
+          example: 1730000000
+        refundee:
+          type: string
+          description: Ethereum address of the refundee
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+
+    UniswapV3StakerIncentiveKeyResponse:
+      type: object
+      required:
+        - rewardToken
+        - pool
+        - startTime
+        - endTime
+        - refundee
+        - totalReward
+        - totalRewardUnclaimed
+        - totalStakes
+        - status
+      properties:
+        rewardToken:
+          $ref: "#/components/schemas/Token"
+        pool:
+          type: string
+          description: Ethereum address of the liquidity pool
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        startTime:
           $ref: "#/components/schemas/Timestamp"
+        endTime:
+          $ref: "#/components/schemas/Timestamp"
+        refundee:
+          type: string
+          description: Ethereum address of the refundee
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        totalReward:
+          $ref: "#/components/schemas/Currency"
+        totalRewardUnclaimed:
+          $ref: "#/components/schemas/Currency"
+        totalStakes:
+          type: integer
+          format: int64
+          description: Number of stakes
+          example: 2
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+          description: Incentive status
+
+    StakeUniswapV3PositionTxRequest:
+      type: object
+      required:
+        - tokenId
+        - user
+        - incentives
+      properties:
+        tokenId:
+          type: string
+          format: string
+          description: token id
+          example: "413245"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        incentives:
+          type: array
+          items:
+            $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyRequest"
+
+    UnstakeUniswapV3PositionTxRequest:
+      type: object
+      required:
+        - tokenId
+        - user
+        - incentives
+      properties:
+        tokenId:
+          type: string
+          format: string
+          description: token id
+          example: "413245"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        incentives:
+          type: array
+          items:
+            $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyRequest"
+        withdraw:
+          type: boolean
+          default: false
+          description: Whether to withdraw nft or not
+    
+    CollectUniswapV3StakingRewardsTxRequest:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          type: string
+          format: address
+          description: Ethereum address of the user
+          example: "0x1234567890123456789012345678901234567890"
+        tokens:
+          type: array
+          items:
+            type: string
+            format: address
+            description: Ethereum address of the reward token
+            pattern: ^(0x)?[0-9a-fA-F]{40}$
+            example: "0x1234567890123456789012345678901234567890"
+
+    UniswapV3StakerUserIncentiveStats:
+      allOf:
+        - $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyResponse"
+        - type: object
+          required:
+            - userRewardUnclaimed
+          properties:
+            userRewardUnclaimed:
+              $ref: "#/components/schemas/Currency"
+
+    UniswapV3StakerUserStake:
+      required:
+        - position
+        - numberOfStakes
+        - incentives
+      properties:
+        position:
+          $ref: "#/components/schemas/PositionDetails"
+        numberOfStakes:
+          type: integer
+          format: int64
+          description: Number of stakes
+          example: 2
+        incentives:
+          type: array
+          items:
+            $ref: "#/components/schemas/UniswapV3StakerUserIncentiveStats"
+
+    UniswapV3StakerUserStakesResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/UniswapV3StakerUserStake"
+
+    V3PoolStats:
+      type: object
+      required:
+        - token0
+        - token1
+        - fee
+        - tvl
+        - poolShare
+        - token0PerToken1
+        - token1PerToken0
+      properties:
+        token0:
+          $ref: '#/components/schemas/Token'
+        token1:
+          $ref: '#/components/schemas/Token'
+        fee:
+          type: string
+          format: string
+          description: The fee tier value
+          example: "0.0005"
+        poolShare:
+          type: string
+          format: string
+          description: The pool share among other pools
+          example: "0.0005"
+        tvl:
+          $ref: '#/components/schemas/Currency'
+        token0PerToken1:
+          $ref: '#/components/schemas/Currency'
+        token1PerToken0:
+          $ref: '#/components/schemas/Currency'
+
+    UniswapV3PoolsList:
+      type: object
+      required:
+        - pools
+      properties:
+        pools:
+          type: array
+          items:
+            $ref: "#/components/schemas/V3PoolStats"
+
+    UniswapV3PoolSurroundingTicks:
+      type: object
+      required:
+        - previousTicks
+        - nextTicks
+        - currentTick
+      properties:
+        previousTicks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tick'
+        nextTicks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tick'
+        currentTick:
+          $ref: '#/components/schemas/Tick'
+    
+    UniswapV3StakerIncentivesResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyResponse"
