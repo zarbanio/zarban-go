@@ -49,6 +49,8 @@ tags:
     description: Operations related to Points
   - name: Staking
     description: Operations related to Staking
+  - name: Ramp
+    description: Operations related to Ramp (on-ramp and off-ramp)
     
 paths:
   /v2/ws:
@@ -701,86 +703,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /v2/stablecoinsystem/auctions/tx/zarjoin:
-    post:
-      operationId: approveAndJoinZarTransaction
-      tags:
-        - StableCoinSystem
-      summary: approve and join ZAR token into Vat contract
-      description: approve and join ZAR token into Vat contract
-      requestBody:
-        required: true
-        description: Approve and join Zar token into Vat contract transaction request
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/StablecoinSystemZarjoinTxRequest"
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChainActivity"
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /v2/stablecoinsystem/auctions/tx/zarexit:
-    post:
-      operationId: exitZarTransaction
-      tags:
-        - StableCoinSystem
-      summary: exit ZAR token from Vat contract
-      description: exit ZAR token from Vat contract
-      requestBody:
-        required: true
-        description: exit Zar token from Vat contract transaction request
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/StablecoinSystemZarexitTxRequest"
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChainActivity"
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /v2/stablecoinsystem/auctions/tx/gemexit:
+  /v2/stablecoinsystem/tx/exitgem:
     post:
       operationId: exitGemTransaction
       tags:
         - StableCoinSystem
-      summary: exit Gem token (which can be used as collateral) from Vat contract
-      description: exit Gem token (which can be used as collateral) from Vat contract
+      summary: Exit collateral Gem from Vat contract to user's wallet
+      description: Initiates a transaction to exit collateral (either an ERC20 token or ETH) from the Vat contract.
+        This allows users to withdraw remaining collateral (after auctions or repayments) held in the vault's urn.
       requestBody:
         required: true
-        description: exit Zar token from Vat contract transaction request
+        description: exit Gem or ETH collateral from Vat contract transaction request
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/StablecoinSystemGemexitTxRequest"
+              $ref: "#/components/schemas/StablecoinSystemExitGemTxRequest"
       responses:
         '200':
           description: Successful response
@@ -1285,6 +1222,82 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /v2/wallet/tx/transfer:
+    post:
+      operationId: walletTransfer
+      tags:
+        - Wallet
+      summary: Transfer
+      description: Transfer
+      requestBody:
+        required: true
+        description: Transfer transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletTransferTxRequest"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletTransferTxResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /v2/wallet/{address}:
+    get:
+      operationId: getWalletByAddress
+      tags:
+        - Wallet
+      summary: Get wallet by address
+      description: Get wallet by address
+      parameters:
+        - name: address
+          in: path
+          description: Ethereum address of the wallet
+          required: true
+          schema:
+            type: string
+            format: address
+            example: "0x1234567890123456789012345678901234567890"
+      responses:
+        '200':
+          description: Wallet details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /v2/accounts/{address}:
     get:
       operationId: getAccountByAddress
@@ -1553,6 +1566,391 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/ramp/tx/onramp:
+    post:
+      operationId: createOnRamp
+      tags:
+        - Ramp
+      summary: Create on-ramp request
+      description: Create an on-ramp request. Returns IBAN and payId for wire transfer.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: On-ramp request with signature
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RampOnRampRequest"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RampOnRampResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '401':
+          description: Unauthorized - missing or invalid session token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user does not own this account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/ramp/tx/offramp:
+    post:
+      operationId: createOffRamp
+      tags:
+        - Ramp
+      summary: Create off-ramp transaction
+      description: Create an off-ramp transaction request. This will create a draft off-ramp record and return a ChainActivity for the user to sign and submit the offRamp transaction on-chain.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: Off-ramp transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RampOffRampTxRequest"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RampOffRampTxResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserError"
+        '401':
+          description: Unauthorized - missing or invalid session token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user does not own this account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error" 
+
+  /v2/ramp/accounts/{id}:
+    get:
+      operationId: getRampAccount
+      tags:
+        - Ramp
+      summary: Get ramp account by ID
+      description: Get ramp account details and KYC status (requires authentication and account ownership)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Ramp account ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RampAccountResponse"
+        '401':
+          description: Unauthorized - missing or invalid session token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user does not own this account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/ramp/accounts:
+    post:
+      operationId: createRampAccount
+      tags:
+        - Ramp
+      summary: Create ramp account
+      description: Create a ramp account and initiate KYC process (requires authentication)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: Ramp account creation request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RampAccountCreationRequest"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RampAccountCreationResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '401':
+          description: Unauthorized - missing or invalid session token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/ramp/accounts/bank:
+    post:
+      operationId: addBankAccount
+      tags:
+        - Ramp
+      summary: Add bank account to ramp account
+      description: Add and verify bank account (IBAN) for a KYCed ramp account (requires authentication and account ownership)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: Bank account information
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RampAccountBankRequest"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RampAccountBankResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '401':
+          description: Unauthorized - missing or invalid session token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - account not KYCed or user does not own this account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/ramp/session/message:
+    get:
+      operationId: getSessionMessage
+      tags:
+        - Ramp
+      summary: Get message to sign for session creation
+      description: Returns a message that needs to be signed to create a session token
+      parameters:
+        - in: query
+          name: address
+          description: User Ethereum address
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionMessageResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/ramp/session:
+    post:
+      operationId: createSession
+      tags:
+        - Ramp
+      summary: Create session token
+      description: Submit signature to create a JWT session token for authenticated requests
+      requestBody:
+        required: true
+        description: Session creation request with signature
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionRequest"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Signature verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/ramp/accounts/me:
+    get:
+      operationId: getMyRampAccount
+      tags:
+        - Ramp
+      summary: Get current user's ramp account
+      description: Get ramp account for the authenticated user (requires session token)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RampAccountResponse"
+        '401':
+          description: Unauthorized - missing or invalid session token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /auth/token:
+    post:
+      operationId: createAuthToken
+      tags:
+        - Auth
+      summary: Create auth token
+      description: Create an auth token for the user
+      requestBody:
+        required: true
+        description: Auth token creation request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthTokenCreationRequest"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenCreationResponse"
         '400':
           description: Bad request
           content:
@@ -1848,6 +2246,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  
+  /v2/uniswap/tx/stakeincentive:
+    post:
+      operationId: stakeUniswapV3PositionsInIncentive
+      tags:
+        - Uniswap
+      summary: Stake Uniswap V3 position nfts into a specific incentive
+      description: Stake Uniswap V3 position nfts into a specific incentive
+      requestBody:
+        required: true
+        description: Stake UniswapV3 LP nft transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UniswapV3StakeByIncentiveTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /v2/uniswap/tx/unstake:
     post:
@@ -1863,6 +2295,74 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UnstakeUniswapV3PositionTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/unstakeincentive:
+    post:
+      operationId: unstakeUniswapV3PositionsFromIncentive
+      tags:
+        - Uniswap
+      summary: Unstake Uniswap V3 positions from a specific incentive
+      description: Unstake Uniswap V3 positions from a specific incentive
+      requestBody:
+        required: true
+        description: Unstake UniswapV3 LP nft transaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UniswapV3UnstakeByIncentiveTxRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainActivity"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/uniswap/tx/collectincentiverewards:
+    post:
+      operationId: collectUniswapV3RewardsFromIncentive
+      tags:
+        - Uniswap
+      summary: Collect Uniswap V3 rewards from a specific incentive
+      description: Collect Uniswap V3 rewards from a specific incentive
+      requestBody:
+        required: true
+        description: Collect UniswapV3 collect rewards from an incentive request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectUniswapV3RewardsByIncentiveTxRequest'
       responses:
         '200':
           description: Successful response
@@ -2068,6 +2568,90 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /v2/uniswap/staking/activestakes:
+    get:
+      operationId: getStakedPositionsByIncentiveId
+      tags:
+        - Uniswap
+      summary: Get all user active stakes by incentive id
+      description: Get all user active stakes by incentive id
+      parameters:
+        - name: user
+          in: query
+          description: Ethereum address of the user
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: incentiveId
+          in: query
+          description: incentive id
+          required: false
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{32}"
+      responses:
+        '200':
+          description: List of stakes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStakedPositionsByIncentiveIdResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v2/uniswap/staking/availabletostake:
+    get:
+      operationId: getAvailablePositionsToStake
+      tags:
+        - Uniswap
+      summary: Get all available user poistions to stake in an incentive
+      description: Get all available user positions stake in an incentive
+      parameters:
+        - name: user
+          in: query
+          description: Ethereum address of the user
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{40}"
+        - name: incentiveId
+          in: query
+          description: incentive id
+          required: true
+          schema:
+            type: string
+            pattern: "0x[a-fA-F0-9]{32}"
+      responses:
+        '200':
+          description: List of positions that are available to stake in a specific incentive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPositions"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /v2/uniswap/staking/incentives:
     get:
       operationId: getUniswapV3StakerIncentives
@@ -2116,7 +2700,80 @@ paths:
                 $ref: "#/components/schemas/Error"
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT session token obtained from POST /v2/ramp/session
+
   schemas:
+    
+    AuthTokenCreationRequest:
+      type: object
+      required:
+        - clientId
+        - clientSecret
+      properties:
+        clientId:
+          type: string
+          description: The client ID
+        clientSecret:
+          type: string
+          description: The client secret
+    
+    AuthTokenCreationResponse:
+      type: object
+      required:
+        - token
+        - expiresAt
+      properties:
+        token:
+          type: string
+          description: The auth token
+        expiresAt:
+          type: string
+          format: date-time
+          description: The expiration time of the auth token
+
+    WalletResponse:
+      type: object
+      required:
+        - address
+        - cash
+        - crypto
+        - balances
+        - network
+      properties:
+        network:
+          $ref: "#/components/schemas/Network"
+        address:
+          type: string
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        cash:
+          $ref: "#/components/schemas/Currency"
+        crypto:
+          $ref: "#/components/schemas/Currency"
+        balances:
+          type: array
+          items:
+            $ref: "#/components/schemas/Balance"
+    Network:
+      type: object
+      required:
+        - name
+        - logoUri
+      properties:
+        name:
+          type: string
+          example: "Ethereum"
+        nameFa:
+          type: string
+          example: "اتریوم"
+        logoUri:
+          type: string
+
     ScoreboardItem:
       type: object
       required:
@@ -2481,59 +3138,26 @@ components:
           type: integer
           description: The ID of the vault
           example: 1
-    StablecoinSystemZarjoinTxRequest:
+    StablecoinSystemExitGemTxRequest:
       type: object
       required:
         - user
-        - amount
+        - vaultId
       properties:
         user:
           type: string
-          description: Ethereum address of the user intends to join zar tokens into the Vat contract.
+          description: Ethereum address of the user who intends to exit Gem tokens or ETH from the Vat contract and receive them.
           format: address
           pattern: "0x[a-fA-F0-9]{40}"
           example: "0x1234567890123456789012345678901234567890"
         amount:
           type: string
-          description: The amount of ZAR to approve and join into Vat contract
+          description: The amount of Gem token or ETH to exit from the Vat contract.
           example: "10000000000000000000"
-    StablecoinSystemZarexitTxRequest:
-      type: object
-      required:
-        - user
-        - amount
-      properties:
-        user:
-          type: string
-          description: Ethereum address of the user intends to exit zar tokens from the Vat contract and receive them..
-          format: address
-          pattern: "0x[a-fA-F0-9]{40}"
-          example: "0x1234567890123456789012345678901234567890"
-        amount:
-          type: string
-          description: The amount of Zar token to exit from Vat contract
-          example: "10000000000000000000"
-    StablecoinSystemGemexitTxRequest:
-      type: object
-      required:
-        - user
-        - amount
-        - ilk
-      properties:
-        user:
-          type: string
-          description: Ethereum address of the user intends to exit gem tokens from the Vat contract and receive them..
-          format: address
-          pattern: "0x[a-fA-F0-9]{40}"
-          example: "0x1234567890123456789012345678901234567890"
-        amount:
-          type: string
-          description: The amount of Gem token to exit from Vat contract
-          example: "10000000000000000000"
-        ilk:
-          type: string
-          description: Name of the ILK
-          example: "ETHA"
+        vaultId:
+          type: integer
+          description: The ID of the vault associated with the urn holding the Gem token or ETH.
+          example: 1
     StablecoinSystemRedoTxRequest:
       type: object
       required:
@@ -2586,6 +3210,435 @@ components:
           type: string
           description: Maximum acceptable price (ZAR / collateral) [ray]
           example: "10000000000000000000"
+
+    RampOffRampTxRequest:
+      type: object
+      required:
+        - amount
+        - payout
+      properties:
+        amount:
+          type: string
+          description: The amount in ZAR (human-readable)
+          example: "100.50"
+        payout:
+          $ref: "#/components/schemas/OffRampPayout"
+
+    OffRampPayout:
+      type: object
+      required:
+        - type
+        - iban
+      properties:
+        type:
+          type: string
+          enum:
+            - iban
+          description: Type of payout method
+        iban:
+          type: string
+          description: IBAN for bank transfer
+          example: "IR123456789012345678901234"
+        bankName:
+          type: string
+          description: Bank name (optional)
+          example: "Bank Melli"
+        metadata:
+          type: object
+          description: Additional metadata for the payout
+          additionalProperties: true
+
+    RampOffRampTxResponse:
+      type: object
+      required:
+        - chainActivity
+        - offchainRef
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+        offchainRef:
+          type: string
+          description: The off-chain reference ID for this ramp
+          example: "1234567890"
+        key:
+          type: string
+          description: The on-chain ramp key (available after the transaction is submitted)
+          pattern: "^0x[0-9a-fA-F]{64}$"
+          example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+
+    RampAccountResponse:
+      type: object
+      required:
+        - address
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        address:
+          type: string
+          pattern: "0x[a-fA-F0-9]{40}"
+        status:
+          type: string
+          enum:
+            - Pending
+            - KYCInProgress
+            - KYCCompleted
+            - KYCRejected
+        kycLink:
+          type: string
+          nullable: true
+          description: Latest KYC link for in-progress KYC
+        kycVerified:
+          type: boolean
+          description: Whether KYC is verified
+        kycInfo:
+          $ref: "#/components/schemas/KYCInfo"
+        bankAccounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/RampAccountBankAccount"
+          description: List of bank accounts associated with this ramp account
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    KYCInfo:
+      type: object
+      description: KYC information fetched from KYC service
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/KYCSession"
+        verificationStatus:
+          type: string
+          enum:
+            - pending
+            - in_progress
+            - completed
+            - rejected
+
+    KYCSession:
+      type: object
+      properties:
+        token:
+          type: string
+        phoneNumber:
+          type: string
+        nationalCode:
+          type: string
+        birthDate:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        isActive:
+          type: boolean
+        submissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/KYCSubmission"
+
+    KYCSubmission:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        machineVerified:
+          type: boolean
+        humanVerified:
+          type: boolean
+
+    SessionMessageResponse:
+      type: object
+      required:
+        - message
+        - timestamp
+      properties:
+        message:
+          type: string
+          description: Message to be signed for session creation
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp included in the message
+
+    SessionRequest:
+      type: object
+      required:
+        - address
+        - timestamp
+        - signature
+      properties:
+        address:
+          type: string
+          pattern: "0x[a-fA-F0-9]{40}"
+          description: User Ethereum address
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp from the session message
+        signature:
+          type: string
+          description: Hex-encoded signature of the session message
+
+    SessionResponse:
+      type: object
+      required:
+        - token
+        - expiresAt
+      properties:
+        token:
+          type: string
+          description: JWT session token
+        expiresAt:
+          type: string
+          format: date-time
+          description: Token expiration time
+
+    RampAccountCreationRequest:
+      type: object
+      required:
+        - phoneNumber
+        - nationalCode
+        - birthDate
+      properties:
+        phoneNumber:
+          type: string
+          description: Phone number
+        nationalCode:
+          type: string
+          description: National code
+        birthDate:
+          type: string
+          description: Birth date in Persian format (YYYY/MM/DD)
+
+    RampAccountCreationResponse:
+      type: object
+      required:
+        - address
+        - status
+      properties:
+        address:
+          type: string
+          pattern: "0x[a-fA-F0-9]{40}"
+        status:
+          type: string
+        kycLink:
+          type: string
+          nullable: true
+        kycToken:
+          type: string
+          nullable: true
+
+    RampAccountBankRequest:
+      type: object
+      required:
+        - cardOrIban
+      properties:
+        cardOrIban:
+          type: string
+          description: Card number or IBAN number
+
+    RampAccountBankResponse:
+      type: object
+      required:
+        - bankAccountId
+        - status
+      properties:
+        bankAccountId:
+          type: integer
+          format: int64
+          description: Bank account ID
+        status:
+          type: string
+          example: "added"
+
+    RampAccountBankAccount:
+      type: object
+      required:
+        - id
+        - iban
+        - isDefault
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+        userAddress:
+          type: string
+          pattern: "0x[a-fA-F0-9]{40}"
+        iban:
+          type: string
+        cardNumber:
+          type: string
+          nullable: true
+        bankName:
+          type: string
+          nullable: true
+        isDefault:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RampOnRampRequest:
+      type: object
+      required:
+        - bankAccountId
+        - amount
+      properties:
+        bankAccountId:
+          type: integer
+          format: int64
+          description: Registered bank account ID
+        amount:
+          type: string
+          description: Amount in TMN (toman)
+          example: "100000"
+        address:
+          type: string
+          pattern: "0x[a-fA-F0-9]{40}"
+          description: User Ethereum address
+
+    RampOnRampResponse:
+      type: object
+      required:
+        - payinTypes
+        - iban
+        - ownerName
+        - bankName
+      properties:
+        iban:
+          type: string
+          example: "IR950190000000221319368006"
+        ownerName:
+          type: string
+          example: "بستر توزیع پیمان هوشمند"
+        bankName:
+          type: string
+          example: "بانک صادرات"
+        payinTypes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayinTypeOption"
+
+    PayinTypeOption:
+      type: object
+      required:
+        - type
+        - fee
+        - eta
+        - ownerName
+        - bankName
+      properties:
+        type:
+          type: string
+          enum:
+            - paya
+            - satna
+            - pol
+        referenceNumber:
+          type: string
+        ownerName:
+          type: string
+          example: "بستر توزیع پیمان هوشمند"
+        bankName:
+          type: string
+          example: "بانک صادرات"
+        fee:
+          type: string
+          description: Fee in TMN
+        eta:
+          type: string
+          description: ETA in minutes/hours
+
+    RampIbanRequest:
+      type: object
+      required:
+        - user
+        - iban
+      properties:
+        user:
+          type: string
+          description: User Ethereum address
+        iban:
+          type: string
+          description: Iranian IBAN
+        bankName:
+          type: string
+        branchName:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        setDefault:
+          type: boolean
+          description: Set this IBAN as default
+          default: false
+
+    RampIbanResponse:
+      type: object
+      required:
+        - id
+        - user
+        - iban
+        - status
+        - isDefault
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+        user:
+          type: string
+        iban:
+          type: string
+        bankName:
+          type: string
+        branchName:
+          type: string
+        status:
+          type: string
+          description: IBAN lifecycle status
+        isDefault:
+          type: boolean
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        verifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    RampIbanResponseList:
+      type: array
+      items:
+        $ref: "#/components/schemas/RampIbanResponse"
 
     QuoteResponse:
       type: object
@@ -3153,6 +4206,8 @@ components:
         - availableToWithdraw
         - availableToMint
         - ilk
+        - liquidated
+        - tokenBalance
       properties:
         id:
           type: integer
@@ -3188,6 +4243,12 @@ components:
           $ref: "#/components/schemas/Currency"
         ilk:
           $ref: "#/components/schemas/Ilk"
+        liquidated:
+          type: boolean
+          description: Indicates if the vault has been liquidated.
+          example: false
+        tokenBalance:
+          $ref: "#/components/schemas/Currency"
 
     ExtendedEvent:
       type: object
@@ -3533,6 +4594,10 @@ components:
         - WETH
         - ZAR
         - TMN
+        - AAVE
+        - LINK
+        - ARB
+        - wstETH
 
     EventDetailsResponse:
       type: object
@@ -3823,6 +4888,23 @@ components:
           type: string
           description: The Persian name of the token.
           example: "زر"
+        nameFa:
+          type: string
+          description: The Persian name of the token.
+          example: "زر"
+        description:
+          type: string
+          description: The description of the token.
+          example: "Zar is a stablecoin that is pegged to the Iranian rial."
+        descriptionFa:
+          type: string
+          description: The Persian description of the token.
+          example: "زر یک استیبل‌کوین است که معادل هزار تومان است."
+        price:
+          description: The price of the token in multiple currencies
+          allOf:
+            - $ref: '#/components/schemas/Currency'
+          nullable: true
     
     AddressResponse:
       type: object
@@ -4411,6 +5493,39 @@ components:
           format: address
           example: "0x1234567890123456789012345678901234567890"
     
+    WalletTransferTxRequest:
+      type: object
+      required:
+        - from
+        - to
+        - tokenAddress
+      properties:
+        from:
+          type: string
+          description: Ethereum address of the sender
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        to:
+          type: string
+          description: Ethereum address of the recipient
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        amount:
+          type: string
+          description: The amount of the transfer in native token units. If not provided, it will be calculated based on the wallet balance.
+          example: "10000000000000000000"
+        tokenAddress:
+          type: string
+          description: Ethereum address of the token
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+    
+    WalletTransferTxResponse:
+      type: object
+      properties:
+        chainActivity:
+          $ref: "#/components/schemas/ChainActivity"
+    
     Tick:
       type: object
       required:
@@ -4448,6 +5563,8 @@ components:
         - owner
         - status
         - tokenURI
+        - staked
+        - numberOfStakes
       properties:
         tokenId:
           type: string
@@ -4502,6 +5619,15 @@ components:
         tokenURI:
           type: string
           description: The image URI of the position's token
+        staked:
+          type: boolean
+          description: Whether the position is staked or not
+          example: true
+        numberOfStakes:
+          type: integer
+          format: int64
+          description: number of incenvtives that this token is staked on
+          example: 0
 
     UserPositions:
       type: object
@@ -4550,6 +5676,7 @@ components:
       type: object
       required:
         - rewardToken
+        - incentiveId
         - pool
         - startTime
         - endTime
@@ -4561,6 +5688,11 @@ components:
       properties:
         rewardToken:
           $ref: "#/components/schemas/Token"
+        incentiveId:
+          type: string
+          format: hex
+          description: "32-byte incentive ID, encoded as a hexadecimal string"
+          example: "0x4a2b1c3d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890"
         pool:
           type: string
           description: Ethereum address of the liquidity pool
@@ -4613,6 +5745,28 @@ components:
           items:
             $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyRequest"
 
+    UniswapV3StakeByIncentiveTxRequest:
+      type: object
+      required:
+        - incentive
+        - user
+        - tokenIds
+      properties:
+        tokenIds:
+          type: array
+          items:
+            type: string
+            format: string
+            description: token id
+            example: "413245"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        incentive:
+          $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyRequest"
+
     UnstakeUniswapV3PositionTxRequest:
       type: object
       required:
@@ -4638,6 +5792,52 @@ components:
           type: boolean
           default: false
           description: Whether to withdraw nft or not
+
+    UniswapV3UnstakeByIncentiveTxRequest:
+      type: object
+      required:
+        - user
+        - incentive
+      properties:
+        tokenIds:
+          type: array
+          items:
+            type: string
+            format: string
+            description: token id
+            example: "413245"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        incentive:
+          $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyRequest"
+        collectReward:
+          type: boolean
+          default: false
+          description: Whether to collect reward or not
+
+    CollectUniswapV3RewardsByIncentiveTxRequest:
+      type: object
+      required:
+        - user
+        - incentive
+      properties:
+        tokenIds:
+          type: array
+          items:
+            type: string
+            format: string
+            description: token id
+            example: "413245"
+        user:
+          type: string
+          description: Ethereum address of the user
+          format: address
+          example: "0x1234567890123456789012345678901234567890"
+        incentive:
+          $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyRequest"
     
     CollectUniswapV3StakingRewardsTxRequest:
       type: object
@@ -4765,3 +5965,38 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UniswapV3StakerIncentiveKeyResponse"
+
+    UserStakedPositionsByIncentiveIdResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/StakedPositionsList"
+
+    StakedPositionsList:
+      type: object
+      required:
+        - incentiveId
+        - positions
+      properties:
+        incentiveId:
+          type: string
+          format: hex
+          description: "32-byte incentive ID, encoded as a hexadecimal string"
+          example: "0x4a2b1c3d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890"
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/StakedPositionWithReward"
+
+    StakedPositionWithReward:
+      type: object
+      required:
+        - tokenId
+        - unclaimedReward
+      properties:
+        tokenId:
+          type: string
+          format: string
+          description: token id
+          example: "413245"
+        unclaimedReward:
+          $ref: "#/components/schemas/AccruedReward"

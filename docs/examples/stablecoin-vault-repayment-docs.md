@@ -109,7 +109,7 @@ const AMOUNT float64 = 0 // Update with the amount to repay
 // Create and configure the client
 client, err := service.NewClient("https://testapi.zarban.io")
 if err != nil {
-    log.Fatalf("Failed to create wallet client: %v", err)
+    log.Fatalf("Failed to create service client: %v", err)
     return
 }
 
