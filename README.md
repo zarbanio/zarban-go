@@ -25,11 +25,9 @@ Zarban SDK supports two distinct environments:
 
 1. **Mainnet**: The production environment for the Zarban DeFi protocol.
 
-   - Wallet API: `https://wapi.zarban.io`
    - Service API: `https://api.zarban.io`
 
 2. **Testnet**: A separate testing environment for the Zarban protocol.
-   - Wallet API: `https://testwapi.zarban.io`
    - Service API: `https://testapi.zarban.io`
 
 Be sure to use the appropriate environment configuration when interacting with the Zarban SDK.
@@ -42,14 +40,6 @@ go get github.com/zarbanio/zarban-go
 
 ## Quick Start
 
-Zarban SDK provides access to two distinct APIs:
-
-### 1. Wallet API (`zarban.wallet`)
-
-The Wallet API handles user authentication and wallet management operations.
-
-### 2. Service API(`zarban.service`)
-
 The Zarban Service API provides access to core DeFi protocol operations.
 
 ```go
@@ -57,12 +47,12 @@ import (
 	"context"
 	"log"
 
-	"github.com/zarbanio/zarban-go/wallet"
+	"github.com/zarbanio/zarban-go/service"
 )
 
-client, err := wallet.NewClient("https://testwapi.zarban.io")
+client, err := service.NewClient("https://testapi.zarban.io")
 if err != nil {
-    log.Fatalf("Failed to create wallet client: %v", err)
+    log.Fatalf("Failed to create service client: %v", err)
     return
 }
 
@@ -77,53 +67,6 @@ if err != nil {
 
 For detailed usage examples, see our [Examples Documentation](docs/examples).
 
-### Advanced Usage
-
-Here's a simple example to sign up and get started with Zarban:
-
-```go
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/zarbanio/zarban-go/wallet"
-)
-
-func SignupExample() {
-	// Create and configure the client
-	client, err := wallet.NewClient("https://testwapi.zarban.io")
-	if err != nil {
-		log.Fatalf("Failed to create wallet client: %v", err)
-		return
-	}
-	// Prepare the signup request data
-	signUpRequest := wallet.SignUpRequest{
-		Email:    "user@example.com",
-		Password: "yourSecurePassword",
-	}
-
-	httpResponse, err := client.SignupWithEmailAndPassword(context.Background(), signUpRequest)
-	if err != nil {
-		log.Fatalf("Error during API call: %v", err)
-		return
-	}
-
-	var successResponse wallet.SimpleResponse
-	err = wallet.HandleAPIResponse(context.Background(), httpResponse, &successResponse)
-	if err != nil {
-		if apiErr, ok := err.(*wallet.APIError); ok {
-			fmt.Println(wallet.PrettyPrintError(apiErr))
-		} else {
-			log.Printf("Unexpected error: %v", err)
-		}
-		return
-	}
-
-	fmt.Printf("Signup successful: %+v\n", successResponse.Messages)
-}
-```
-
 ## Configuration
 
 The SDK can be configured with various options to customize its behavior and authentication methods.
@@ -131,12 +74,12 @@ The SDK can be configured with various options to customize its behavior and aut
 ### Basic Configuration
 
 ```Go
-import "github.com/zarbanio/zarban-go/wallet"
+import "github.com/zarbanio/zarban-go/service"
 
 // Basic configuration with just the host URL
-client, err := wallet.NewClient("https://testwapi.zarban.io")
+client, err := service.NewClient("https://testapi.zarban.io")
 if err != nil {
-    log.Fatalf("Failed to create wallet client: %v", err)
+    log.Fatalf("Failed to create service client: %v", err)
     return
 }
 ```
@@ -150,13 +93,13 @@ The SDK supports multiple authentication methods:
 ```Go
 // Define headers to be added
 headers := map[string]string{
-    "Authorization": "Bearer " + loginResponse.Token,
+    "Authorization": "Bearer " + token,
 }
 
 // configure it with the header editing function
-client, err = wallet.NewClient(
-    "https://testwapi.zarban.io",
-    wallet.WithRequestEditorFn(wallet.AddHeaders(headers)),
+client, err = service.NewClient(
+    "https://testapi.zarban.io",
+    service.WithRequestEditorFn(service.AddHeaders(headers)),
 )
 if err != nil {
     log.Fatalf("Failed to create client: %v", err)
@@ -174,17 +117,17 @@ While using HandleAPIResponse is not mandatory, we highly recommend it for clean
 Using HandleAPIResponse
 
 ```go
-httpResponse, err = client.CreateChildUser(context.Background(), createChildUserRequest)
+httpResponse, err = client.GetAllIlks(context.Background())
 if err != nil {
-    log.Fatalf("Error during API call -> CreateChildUser: %v", err)
+    log.Fatalf("Error during API call -> GetAllIlks: %v", err)
     return
 }
 
-var createChildResponse wallet.User
-err = wallet.HandleAPIResponse(context.Background(), httpResponse, &createChildResponse)
+var ilksResponse service.IlksResponse
+err = service.HandleAPIResponse(context.Background(), httpResponse, &ilksResponse)
 if err != nil {
-    if apiErr, ok := err.(*wallet.APIError); ok {
-        fmt.Println(wallet.PrettyPrintError(apiErr))
+    if apiErr, ok := err.(*service.APIError); ok {
+        fmt.Println(service.PrettyPrintError(apiErr))
     } else {
         log.Printf("Unexpected error: %v", err)
     }
@@ -195,28 +138,28 @@ if err != nil {
 Manual Error Handling
 
 ```go
-httpResponse, err = client.CreateChildUser(context.Background(), createChildUserRequest)
+httpResponse, err = client.GetAllIlks(context.Background())
 if err != nil {
     log.Fatalf("Error during API call: %v", err)
     return
 }
 
-createChildResponse, err := wallet.ParseCreateChildUserResponse(httpResponse)
+ilksResponse, err := service.ParseGetAllIlksResponse(httpResponse)
 if err != nil {
     log.Fatalf("Error while parsing http response: %v", err)
     return
 }
 
-switch c.StatusCode() {
+switch i.StatusCode() {
 case 200:
-    fmt.Printf("Child user created successfully. User: %s\n", *c.JSON200.Username)
-    return c.JSON200, nil
+    fmt.Printf("Ilks fetched successfully. Count: %d\n", len(i.JSON200.Data))
+    return i.JSON200, nil
 case 400:
-    return c.JSON400, fmt.Errorf("bad request: %s", c.JSON400.Msg)
+    return i.JSON400, fmt.Errorf("bad request: %s", i.JSON400.Msg)
 case 500:
-    return c.JSON500, fmt.Errorf("internal server error: %s", c.JSON500.Msg)
+    return i.JSON500, fmt.Errorf("internal server error: %s", i.JSON500.Msg)
 default:
-    return nil, fmt.Errorf("unexpected status code: %d", c.StatusCode())
+    return nil, fmt.Errorf("unexpected status code: %d", i.StatusCode())
 }
 ```
 
